@@ -1,0 +1,1889 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Podcast Jelajah Malam — Dashboard Produksi</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+:root{
+  --bg:#090b0e;--panel:#11151a;--panel2:#151a20;--line:#262c35;--text:#f5f6f8;--muted:#9299a5;
+  --red:#e31d2b;--red2:#ff3442;--green:#25c56f;--yellow:#f5b72f;--blue:#5b8cff;--purple:#a976ff;
+  --danger:#dc2626;--danger-bg:rgba(220,38,38,0.15);--danger-border:#991b1b;
+  --shadow:0 14px 40px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+.app{display:flex;min-height:100vh}
+
+/* LOCK SCREEN AUTH */
+.lock-screen{position:fixed;inset:0;background:radial-gradient(circle at 50% 30%,#1a080c 0%,#080a0d 65%,#040507 100%);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px}
+.lock-card{width:min(440px,100%);background:linear-gradient(180deg,#141920,#0e1116);border:1px solid #36171b;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,0.9), 0 0 35px rgba(227,29,43,0.18);padding:32px 26px;text-align:center}
+.lock-logo{width:80px;height:56px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center}
+.lock-logo img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(255,215,0,0.35))}
+.lock-card h2{margin:0 0 6px;font-size:20px;letter-spacing:.8px;color:#fff}
+.lock-badge{display:inline-block;padding:4px 10px;background:rgba(227,29,43,0.18);border:1px solid rgba(227,29,43,0.4);border-radius:20px;color:#ff5b66;font-size:11px;font-weight:700;letter-spacing:1px;margin-bottom:16px}
+.lock-card p{margin:0 0 18px;color:#8f98a5;font-size:13px;line-height:1.5}
+.lock-form{display:grid;gap:12px;text-align:left}
+.lock-input-wrap{position:relative}
+.lock-input-wrap input{width:100%;background:#090c10;border:1px solid #2d3542;border-radius:10px;padding:12px 42px 12px 14px;color:#fff;font-size:14px;outline:none;transition:.2s}
+.lock-input-wrap input:focus{border-color:#e31d2b;box-shadow:0 0 0 3px rgba(227,29,43,0.2)}
+.lock-toggle-pass{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#818b98;font-size:16px;padding:4px;cursor:pointer}
+.lock-toggle-pass:hover{color:#fff}
+.lock-error{display:none;color:#ff5b66;font-size:12px;background:rgba(220,38,38,0.14);border:1px solid rgba(220,38,38,0.35);padding:9px 12px;border-radius:8px;margin-bottom:4px;text-align:center}
+.lock-remember{display:flex;align-items:center;gap:8px;font-size:12px;color:#8e96a2;cursor:pointer;user-select:none}
+.lock-remember input{cursor:pointer}
+.lock-btn{width:100%;padding:12px;background:linear-gradient(180deg,#ee2a38,#ba1320);border:1px solid #ff424f;border-radius:10px;color:#fff;font-weight:700;font-size:14px;box-shadow:0 8px 24px rgba(227,29,43,0.35);transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.lock-btn:hover{background:linear-gradient(180deg,#ff3b49,#cb1725);transform:translateY(-1px)}
+
+/* SIDEBAR */
+.sidebar{width:256px;background:linear-gradient(180deg,#0d1014 0%,#0a0c0f 100%);border-right:1px solid var(--line);padding:18px 14px;position:fixed;top:0;bottom:0;overflow-y:auto;z-index:40}
+.brand{display:flex;align-items:center;gap:12px;padding:8px 8px 18px;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:12px}
+.logo-box{width:54px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-box img{max-width:100%;max-height:100%;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(255,215,0,0.25))}
+.brand b{display:block;font-size:15px;letter-spacing:.8px;line-height:1.2;color:#fff}
+.brand span{font-size:11px;color:#ff4b57;letter-spacing:2px;font-weight:700}
+
+.nav{display:grid;gap:6px}
+.nav a{display:flex;align-items:center;gap:11px;color:#b8bec7;padding:10px 12px;border-radius:10px;font-size:13px;transition:.18s}
+.nav a:hover{background:#151a20;color:#fff}
+.nav a.active{background:linear-gradient(90deg,#cf1b28,#9e121d);color:#fff;box-shadow:0 8px 18px rgba(227,29,43,.22);font-weight:600}
+
+.card{background:linear-gradient(180deg,rgba(18,22,27,.98),rgba(13,16,20,.98));border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.channel{margin:18px 1px 0;padding:14px;border:1px solid #3d1b20;background:linear-gradient(180deg,rgba(30,15,18,0.4),rgba(15,17,22,0.95))}
+.channel .mini{display:flex;gap:10px;align-items:center}
+.channel .mini .logo-box{width:44px;height:32px}
+.channel small{color:var(--muted);font-size:11px}
+.yt-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:8px 10px;background:#e31d2b;color:#fff;border-radius:8px;font-size:11px;font-weight:700;transition:.2s}
+.yt-btn:hover{background:#ff2837;box-shadow:0 4px 14px rgba(227,29,43,0.4)}
+
+/* MAIN CONTENT */
+.main{margin-left:256px;width:calc(100% - 256px);padding:22px 24px 34px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.welcome h1{margin:0;font-size:22px;font-weight:700}
+.welcome p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.top-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search{width:240px;position:relative}
+.search input{width:100%;background:#10141a;border:1px solid var(--line);color:#fff;border-radius:10px;padding:10px 36px 10px 12px;outline:none;font-size:12px}
+.search input:focus{border-color:#ff4050}
+.search span{position:absolute;right:12px;top:9px;color:#8d95a1}
+.iconbtn{width:38px;height:38px;background:#11151a;border:1px solid var(--line);color:#fff;border-radius:10px;display:grid;place-items:center;transition:.18s}
+.iconbtn:hover{background:#1a2027;border-color:#404854}
+.avatar{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#a81b25,#400d11);display:grid;place-items:center;font-weight:700;border:1px solid #751a21}
+.date-badge{color:#adb3bc;font-size:12px;padding:8px 12px;background:#10141a;border:1px solid var(--line);border-radius:10px}
+
+/* BUTTONS */
+.btn{border:1px solid var(--line);background:#14191f;color:#fff;border-radius:9px;padding:8px 12px;font-size:12px;display:inline-flex;align-items:center;gap:6px;transition:.18s;white-space:nowrap}
+.btn:hover{background:#1b2129;border-color:#3f4754}
+.btn.primary{border-color:#e5333f;background:linear-gradient(180deg,#ee2a38,#ba1320);font-weight:600}
+.btn.primary:hover{background:linear-gradient(180deg,#ff3b49,#cb1725);box-shadow:0 6px 16px rgba(227,29,43,0.35)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:#192028;border-color:var(--line)}
+.btn.danger{background:var(--danger-bg);border-color:var(--danger-border);color:#ff9898}
+.btn.danger:hover{background:rgba(220,38,38,0.35);color:#fff;border-color:var(--danger)}
+.btn.success{background:rgba(37,197,111,0.12);border-color:rgba(37,197,111,0.3);color:#42dd91}
+.btn.success:hover{background:rgba(37,197,111,0.25);color:#fff}
+.btn-sm{padding:5px 9px;font-size:11px;border-radius:7px}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.metric{padding:16px}
+.metric .top{display:flex;justify-content:space-between;align-items:center;color:#aeb5bf;font-size:12px}
+.metric .ico{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;font-size:15px}
+.metric strong{display:block;font-size:26px;margin-top:6px;font-weight:700}
+.metric .trend{font-size:11px;margin-top:4px}
+.red{color:var(--red2)}.green{color:var(--green)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}.purple{color:var(--purple)}
+
+/* GRID & SECTIONS */
+.grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(320px,1fr);gap:14px;margin-top:14px}
+.section{padding:16px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.section-head h2{font-size:16px;margin:0;display:flex;align-items:center;gap:8px}
+.section-head .actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:10px;overflow-x:auto}
+.tab{padding:8px 12px;border:0;background:transparent;color:#9097a2;font-size:12px;border-bottom:2px solid transparent;white-space:nowrap}
+.tab.active{color:#ff4b57;border-color:var(--red);font-weight:600}
+
+.toolbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.toolbar input,.toolbar select{background:#0d1115;border:1px solid var(--line);color:#fff;padding:8px 11px;border-radius:9px;outline:none;font-size:12px}
+.toolbar input{flex:1;min-width:160px}
+.toolbar input:focus,.toolbar select:focus{border-color:#e31d2b}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+.table{width:100%;border-collapse:collapse;font-size:12px}
+.table th,.table td{padding:10px 9px;border-bottom:1px solid #1f252d;text-align:left}
+.table th{color:#7f8792;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;background:#0d1116}
+.table td{color:#d9dde3}
+.table tr:hover td{background:rgba(255,255,255,.02)}
+
+.person{display:flex;align-items:center;gap:9px}
+.pic{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#704a38,#1f2024);display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
+.badge{display:inline-flex;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700}
+.b-ready{background:rgba(245,183,47,.14);color:var(--yellow);border:1px solid rgba(245,183,47,.25)}
+.b-edit{background:rgba(91,140,255,.14);color:#8cb0ff;border:1px solid rgba(91,140,255,.25)}
+.b-done{background:rgba(37,197,111,.14);color:#58e698;border:1px solid rgba(37,197,111,.25)}
+.b-new{background:#1c232a;color:#c2c8d1;border:1px solid #2d3642}
+
+/* CALENDAR & LIST */
+.calendar{min-height:280px}
+.cal-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cal-title b{font-size:15px}
+.cal-nav{display:flex;gap:5px}
+.cal-nav button{width:28px;height:28px;border-radius:7px;background:#12171c;border:1px solid var(--line);color:#ddd}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;font-size:11px}
+.cal-grid div{min-height:32px;padding:6px 2px;text-align:center;color:#a1a7b1;border-radius:7px;position:relative}
+.cal-grid .head{color:#6f7681;min-height:auto;font-weight:600}
+.cal-grid .today{background:#be1422;color:#fff;font-weight:700}
+.dot{width:5px;height:5px;border-radius:50%;position:absolute;left:50%;transform:translateX(-50%);bottom:3px;background:var(--red2);box-shadow:0 0 5px var(--red2)}
+
+.recent{display:grid;gap:10px}
+.video-card{display:grid;grid-template-columns:80px 1fr auto;gap:10px;align-items:center;padding:8px;border-radius:9px;background:#0f1318;border:1px solid #1c222b}
+.video-card:hover{border-color:#303844}
+.thumb{width:80px;height:48px;border-radius:6px;background:linear-gradient(135deg,#1c2129,#090b0e);display:grid;place-items:center;color:#ddd;font-size:9px;font-weight:700;border:1px solid #2c333d;text-align:center;padding:4px}
+.video-card h4{margin:0;font-size:12px;line-height:1.3}
+.video-card p{margin:3px 0 0;color:#7e8690;font-size:10px}
+.stats{text-align:right}
+.stats strong{display:block;font-size:12px}
+.stats span{font-size:10px;color:#4ddd8d}
+
+.empty{padding:26px 10px;text-align:center;color:#777f8b;font-size:12px}
+
+/* YOUTUBE EMBED PLAYER & GALLERY */
+.yt-player-box{background:#0d1116;border:1px solid #28303d;border-radius:14px;overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow)}
+.yt-player-header{padding:12px 16px;background:#141922;border-bottom:1px solid #232b38;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.yt-player-frame-wrap{position:relative;padding-bottom:52%;height:0;overflow:hidden;background:#000}
+.yt-player-frame-wrap iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}
+.yt-player-fallback{position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#1b0d10,#090b0e);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.yt-player-meta{padding:14px 16px;background:#11151c;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.yt-player-info h3{margin:0 0 5px;font-size:16px;color:#fff}
+.yt-player-info p{margin:0;color:var(--muted);font-size:12px}
+.yt-player-stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.yt-stat-badge{padding:6px 12px;background:#161c24;border:1px solid #2a3340;border-radius:8px;font-size:12px;text-align:center}
+.yt-stat-badge strong{display:block;font-size:14px;color:#fff}
+.yt-stat-badge span{font-size:10px;color:var(--muted)}
+
+.video-grid-yt{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-top:14px}
+.video-card-yt{background:#11161d;border:1px solid #222935;border-radius:12px;overflow:hidden;transition:.2s;display:flex;flex-direction:column}
+.video-card-yt:hover{border-color:#e31d2b;transform:translateY(-2px);box-shadow:0 8px 24px rgba(227,29,43,0.18)}
+.yt-thumb-wrap{position:relative;width:100%;padding-top:56.25%;background:#0a0c10;cursor:pointer;overflow:hidden}
+.yt-thumb-wrap img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transition:.25s}
+.video-card-yt:hover .yt-thumb-wrap img{transform:scale(1.05)}
+.yt-thumb-duration{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,0.85);color:#fff;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700}
+.yt-play-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;background:rgba(227,29,43,0.92);border-radius:50%;display:grid;place-items:center;font-size:16px;color:#fff;box-shadow:0 0 16px rgba(227,29,43,0.6);transition:.2s}
+.video-card-yt:hover .yt-play-icon{transform:translate(-50%,-50%) scale(1.12);background:#ff2837}
+.yt-card-body{padding:12px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.yt-card-body h4{margin:0 0 6px;font-size:13px;line-height:1.4;color:#f0f2f5}
+.yt-card-body p{margin:0 0 10px;font-size:11px;color:#858d99}
+.yt-card-metrics{display:flex;gap:12px;font-size:11px;color:#abb2bd;padding-top:8px;border-top:1px solid #1c222c}
+.yt-card-actions{display:flex;gap:6px;margin-top:10px}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:16px;z-index:100;backdrop-filter:blur(3px)}
+.modal-backdrop.show{display:flex}
+.modal{width:min(640px,100%);background:#11151a;border:1px solid #303743;border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.7);padding:20px}
+.modal h3{margin:0 0 16px;font-size:17px;display:flex;justify-content:space-between;align-items:center}
+.modal-close{background:transparent;border:0;color:#8f97a3;font-size:20px;line-height:1;padding:0}
+.modal-close:hover{color:#fff}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form .full{grid-column:1/-1}
+.form label{display:grid;gap:5px;font-size:11px;color:#8e95a0;font-weight:600}
+.form input,.form select,.form textarea{background:#0c1014;border:1px solid var(--line);color:#fff;border-radius:9px;padding:9px 10px;outline:none;font-size:12px}
+.form input:focus,.form select:focus,.form textarea:focus{border-color:#e31d2b}
+.form textarea{min-height:80px;resize:vertical}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;align-items:center}
+
+/* TOAST */
+.toast{position:fixed;right:20px;bottom:20px;background:#151a21;border:1px solid #343d49;color:#fff;border-radius:10px;padding:12px 16px;font-size:13px;opacity:0;transform:translateY(10px);transition:.22s;z-index:200;box-shadow:0 12px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:none}
+
+/* RESPONSIVE */
+@media(max-width:1200px){
+  .metrics{grid-template-columns:repeat(3,1fr)}
+  .grid{grid-template-columns:1fr}
+  .search{width:200px}
+}
+@media(max-width:860px){
+  .sidebar{transform:translateX(-100%);transition:.25s}
+  .sidebar.open{transform:none;box-shadow:10px 0 40px rgba(0,0,0,0.8)}
+  .main{margin-left:0;width:100%;padding:16px}
+  .mobile-menu{display:grid}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .search{order:4;width:100%}
+  .top-actions{width:100%;justify-content:space-between}
+  .yt-player-frame-wrap{padding-bottom:56.25%}
+}
+@media(min-width:861px){.mobile-menu{display:none}}
+@media(max-width:560px){
+  .metrics{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+  .form .full{grid-column:auto}
+  .welcome h1{font-size:18px}
+  .date-badge{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- LAYAR KUNCI AKSES (PASSWORD GATE) -->
+<div class="lock-screen" id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-logo">
+      <img src="logo.png" alt="Podcast Jelajah Malam">
+    </div>
+    <h2>JELAJAH MALAM</h2>
+    <span class="lock-badge">🔒 AKSES TERBATAS TIM PRODUKSI</span>
+    <p>Dashboard ini diproteksi. Masukkan sandi akses tim untuk melihat narasumber, rekaman, dan jadwal tayang.</p>
+
+    <div class="lock-error" id="lockError">⚠️ Sandi salah! Silakan coba lagi.</div>
+
+    <div class="lock-form">
+      <div class="lock-input-wrap">
+        <input type="password" id="authPassInput" placeholder="Masukkan sandi akses..." autocomplete="current-password">
+        <button type="button" class="lock-toggle-pass" id="btnTogglePass" onclick="togglePassVisibility()" title="Lihat Sandi">👁️</button>
+      </div>
+      <label class="lock-remember">
+        <input type="checkbox" id="authRemember" checked> Ingat saya di perangkat ini
+      </label>
+      <button class="lock-btn" onclick="handleLogin()">🔓 Buka Dashboard</button>
+    </div>
+
+    <div style="margin-top:20px;font-size:11px;color:#5e6673">
+      Podcast Jelajah Malam (@jelajahmalamasli)
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo-box">
+        <img src="logo.png" alt="Podcast Jelajah Malam Logo">
+      </div>
+      <div>
+        <b>JELAJAH MALAM</b>
+        <span>PODCAST DASHBOARD</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a class="active" data-page="dashboard">🏠 Dashboard</a>
+      <a data-page="stok">🎥 Stok Video & Narasumber</a>
+      <a data-page="tayang">▶ Video Sudah Tayang</a>
+      <a data-page="kalender">🗓 Kalender Konten</a>
+      <a data-page="analytics">📈 Analytics & YouTube</a>
+      <a data-page="catatan">📝 Catatan Produksi</a>
+      <a data-page="pengaturan">⚙ Pengaturan & Backup</a>
+    </nav>
+
+    <div class="channel card">
+      <div class="mini">
+        <div class="logo-box">
+          <img src="logo.png" alt="Jelajah Malam">
+        </div>
+        <div>
+          <b>Jelajah Malam</b><br>
+          <small>@jelajahmalamasli</small>
+        </div>
+      </div>
+      <a href="https://www.youtube.com/@jelajahmalamasli" target="_blank" rel="noopener noreferrer" class="yt-btn">
+        ▶ Buka Channel YouTube
+      </a>
+    </div>
+
+    <div style="margin-top:16px">
+      <button class="btn danger btn-sm" style="width:100%;justify-content:center" onclick="handleLogout()">🔒 Kunci Dashboard</button>
+    </div>
+  </aside>
+
+  <!-- MAIN VIEW -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="welcome">
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="iconbtn mobile-menu" id="mobileMenu">☰</button>
+          <div>
+            <h1>Dashboard Podcast Jelajah Malam 👋</h1>
+            <p>Kelola narasumber, stok footage, jadwal tayang, dan performa konten YouTube.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <div class="search">
+          <input id="globalSearch" placeholder="Cari narasumber, judul, topik...">
+          <span>⌕</span>
+        </div>
+        
+        <!-- GOOGLE SHEETS LIVE SYNC BADGE -->
+        <button class="btn btn-sm" id="gsheetSyncBadge" style="display:none;font-size:11px;background:#0d1813;border-color:rgba(37,197,111,0.3);color:#42dd91" title="Klik untuk sinkronisasi ulang data dari Google Sheets" onclick="fetchFromGSheet(false)">🟢 Google Sheets Aktif</button>
+
+        <!-- EXPORT & IMPORT QUICK BUTTONS -->
+        <button class="btn ghost" title="Export Backup Data (JSON)" onclick="exportDataJSON()">📥 Export</button>
+        <button class="btn ghost" title="Import Data Backup (JSON)" onclick="document.getElementById('importFileInput').click()">📤 Import</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importDataJSON(event)">
+
+        <button class="btn danger btn-sm" title="Kunci Akses / Logout" onclick="handleLogout()">🔒 Kunci Web</button>
+        <button class="iconbtn" title="Notifikasi" onclick="toast('🔔 Belum ada notifikasi baru')">🔔</button>
+        <div class="avatar" title="Admin Jelajah Malam">JM</div>
+        <div class="date-badge" id="currentDateBadge">Hari ini</div>
+      </div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics">
+      <div class="metric card">
+        <div class="top"><span>Total Narasumber</span><div class="ico" style="background:#321117;color:#ff4050">👥</div></div>
+        <strong id="mNarasumber">0</strong>
+        <div class="trend red">Total tercatat di sistem</div>
+      </div>
+      <div class="metric card">
+        <div class="top"><span>Stok Siap Tayang</span><div class="ico" style="background:#33260e;color:#ffc23d">🎥</div></div>
+        <strong id="mReady">0</strong>
+        <div class="trend yellow">Konten siap upload</div>
+      </div>
+      <div class="metric card">
+        <div class="top"><span>Dalam Editing</span><div class="ico" style="background:#111f3c;color:#7da3ff">✎</div></div>
+        <strong id="mEditing">0</strong>
+        <div class="trend blue">Sedang diproduksi</div>
+      </div>
+      <div class="metric card">
+        <div class="top"><span>Video Sudah Tayang</span><div class="ico" style="background:#0c2a1c;color:#42dd91">✓</div></div>
+        <strong id="mDone">0</strong>
+        <div class="trend green">Terdata tayang</div>
+      </div>
+      <div class="metric card">
+        <div class="top"><span>Jadwal Tayang Terdekat</span><div class="ico" style="background:#21163b;color:#b786ff">🗓</div></div>
+        <strong id="mNext" style="font-size:18px">—</strong>
+        <div class="trend purple" id="mNextTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Belum ada jadwal</div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD VIEW -->
+    <div class="grid" id="dashboardPage">
+      <!-- STOK & NARASUMBER SECTION -->
+      <section class="section card">
+        <div class="section-head">
+          <h2>🎥 Stok Video & Narasumber</h2>
+          <div class="actions">
+            <button class="btn ghost btn-sm" onclick="exportStockCSV()">📊 Unduh CSV</button>
+            <button class="btn primary btn-sm" onclick="openAdd()">＋ Tambah Narasumber</button>
+          </div>
+        </div>
+
+        <div class="tabs" id="statusTabs">
+          <button class="tab active" data-status="Semua">Semua</button>
+          <button class="tab" data-status="Belum Diedit">Belum Diedit</button>
+          <button class="tab" data-status="Editing">Editing</button>
+          <button class="tab" data-status="Siap Tayang">Siap Tayang</button>
+          <button class="tab" data-status="Sudah Tayang">Sudah Tayang</button>
+        </div>
+
+        <div class="toolbar">
+          <input id="stockSearch" placeholder="Cari nama narasumber, judul, catatan...">
+          <select id="stockFilter">
+            <option>Semua Status</option>
+            <option>Belum Diedit</option>
+            <option>Editing</option>
+            <option>Siap Tayang</option>
+            <option>Sudah Tayang</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Narasumber</th>
+                <th>Tgl Rekaman</th>
+                <th>Judul / Topik</th>
+                <th>Status</th>
+                <th>Target Tayang</th>
+                <th>Catatan</th>
+                <th style="text-align:center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="stockBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MINI CALENDAR SECTION -->
+      <section class="section card calendar">
+        <div class="section-head">
+          <h2>🗓 Kalender Produksi</h2>
+          <button class="btn ghost btn-sm" onclick="showPage('kalender')">Lihat Kalender →</button>
+        </div>
+        <div class="cal-title">
+          <b id="calMonthTitle">Bulan Ini</b>
+          <div class="cal-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <button onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <div class="cal-grid" id="miniCal"></div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;color:#838b96;font-size:11px">
+          <span>🔴 Rekaman</span>
+          <span>🟡 Target Tayang</span>
+          <span>🟢 Hari Ini</span>
+        </div>
+      </section>
+
+      <!-- VIDEO SUDAH TAYANG SECTION -->
+      <section class="section card">
+        <div class="section-head">
+          <h2>▶ Video yang Sudah Tayang</h2>
+          <div class="actions">
+            <button class="btn primary btn-sm" onclick="openAddPublished()">＋ Tambah Video Tayang</button>
+            <button class="btn ghost btn-sm" onclick="showPage('tayang')">Lihat Semua</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Judul Video</th>
+                <th>Narasumber</th>
+                <th>Tanggal Tayang</th>
+                <th>Views</th>
+                <th>Like</th>
+                <th>Komentar</th>
+                <th style="text-align:center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="publishedBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- VIDEO TERBARU WIDGET -->
+      <section class="section card">
+        <div class="section-head">
+          <h2>🔥 Video Terbaru Tayang</h2>
+          <button class="btn ghost btn-sm" onclick="showPage('tayang')">Lihat Semua</button>
+        </div>
+        <div class="recent" id="recentList"></div>
+        <div style="margin-top:14px;color:#ff4b57;font-size:12px;cursor:pointer;font-weight:600" onclick="showPage('analytics')">
+          Buka Galeri & Analytics Video YouTube →
+        </div>
+      </section>
+    </div>
+
+    <!-- DYNAMIC OTHER PAGES -->
+    <div id="otherPage" style="display:none"></div>
+  </main>
+</div>
+
+<!-- MODAL TAMBAH / EDIT NARASUMBER -->
+<div class="modal-backdrop" id="modal">
+  <div class="modal">
+    <h3>
+      <span id="modalTitle">Tambah Stok Video & Narasumber</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </h3>
+    <div class="form">
+      <label>Nama Narasumber *
+        <input id="fName" placeholder="Contoh: Ustadz Hanan / Mang Ucup">
+      </label>
+      <label>Tanggal Rekaman
+        <input id="fDate" type="date">
+      </label>
+      <label class="full">Judul / Topik Pembahasan *
+        <input id="fTitle" placeholder="Contoh: Teror Makam Keramat & Penunggu Pohon Tua">
+      </label>
+      <label>Status Produksi
+        <select id="fStatus">
+          <option>Belum Diedit</option>
+          <option>Editing</option>
+          <option>Siap Tayang</option>
+          <option>Sudah Tayang</option>
+        </select>
+      </label>
+      <label>Target Tanggal Tayang
+        <input id="fTarget" type="date">
+      </label>
+      <label class="full">Catatan Produksi / Editor
+        <input id="fNote" placeholder="Contoh: Potong intro menit ke-2, footage 4K sudah aman di HDD">
+      </label>
+      <label class="full">Link Folder Bahan / Link Video (Google Drive / YouTube)
+        <input id="fLink" placeholder="https://drive.google.com/... atau https://youtu.be/...">
+      </label>
+    </div>
+    <div class="modal-actions">
+      <!-- TOMBOL HAPUS (MUNCUL SAAT EDIT) -->
+      <button class="btn danger" id="btnModalDelete" style="display:none;margin-right:auto" onclick="deleteCurrentFromModal()">🗑 Hapus Narasumber</button>
+      <button class="btn ghost" onclick="closeModal()">Batal</button>
+      <button class="btn primary" onclick="saveItem()">💾 Simpan Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH / EDIT VIDEO SUDAH TAYANG -->
+<div class="modal-backdrop" id="modalPublished">
+  <div class="modal">
+    <h3>
+      <span id="modalPublishedTitle">Tambah Video Sudah Tayang</span>
+      <button class="modal-close" onclick="closePublishedModal()">✕</button>
+    </h3>
+    <div class="form">
+      <label class="full">Judul Video YouTube *
+        <input id="pubTitle" placeholder="Contoh: Sisi Gelap Dunia Hiburan: Ritual Susuk & Kontrak Darah">
+      </label>
+      <label>Nama Narasumber
+        <input id="pubName" placeholder="Contoh: Ustadz Hanan / Saksi Mata">
+      </label>
+      <label>Tanggal Tayang
+        <input id="pubDate" type="date">
+      </label>
+      <label>Durasi Video
+        <input id="pubDuration" placeholder="Contoh: 54:20 atau 1:02:15">
+      </label>
+      <label>Jumlah Views
+        <input id="pubViews" type="number" placeholder="Contoh: 85000">
+      </label>
+      <label>Jumlah Likes
+        <input id="pubLikes" type="number" placeholder="Contoh: 6200">
+      </label>
+      <label>Jumlah Komentar
+        <input id="pubComments" type="number" placeholder="Contoh: 450">
+      </label>
+      <label class="full">Link Video YouTube (Bisa URL watch / share / embed)
+        <input id="pubLink" placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/...">
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn danger" id="btnModalPubDelete" style="display:none;margin-right:auto" onclick="deletePublishedFromModal()">🗑 Hapus Video</button>
+      <button class="btn ghost" onclick="closePublishedModal()">Batal</button>
+      <button class="btn primary" onclick="savePublishedItem()">💾 Simpan Video</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY = 'jl_dashboard_data_v1';
+const PASS_KEY = 'jl_custom_pass';
+const DEFAULT_PASS = 'malamini';
+
+const defaultData = {
+  stock: [
+    {id: 1, name: 'Ustadz Hanan', date: '2026-08-10', title: 'Kisah Nyata di Makam Keramat & Perjanjian Gaib', status: 'Siap Tayang', target: '2026-08-28', note: 'Thumbnail selesai, audio master jernih', link: ''},
+    {id: 2, name: 'Mbah Suroto', date: '2026-08-08', title: 'Penampakan di Rumah Tua Bekas Pesugihan', status: 'Editing', target: '2026-09-01', note: 'Potong intro 12 detik, tambah effect jumpscare', link: ''},
+    {id: 3, name: 'Rian Shock', date: '2026-08-05', title: 'Pengalaman Mistis di Gunung Sindoro', status: 'Belum Diedit', target: '', note: 'File sudah backup di Drive', link: ''},
+    {id: 4, name: 'Ningsih', date: '2026-08-03', title: 'Diganggu Makhluk Halus Sejak Kecil', status: 'Siap Tayang', target: '2026-09-04', note: 'Cek mixing suara narasumber', link: ''},
+    {id: 5, name: 'Dimas Adventurer', date: '2026-08-01', title: 'Pendakian Malam Berujung Teror Gaib', status: 'Belum Diedit', target: '', note: 'Footage 4K 2 Kamera', link: ''}
+  ],
+  published: [
+    {id: 101, title: 'Sisi Gelap Dunia Hiburan: Ritual Susuk, Kontrak Darah & Adab di Balik Layar', name: 'Narasumber Eksklusif', date: '2026-08-20', duration: '1:02:15', views: 84200, likes: 6350, comments: 780, link: 'https://www.youtube.com/@jelajahmalamasli'},
+    {id: 102, title: 'Teror Pendakian Malam Hari: Tersesat di Pasar Setan & Diikuti Sosok Penunggu Gunung', name: 'Dimas Adventurer', date: '2026-08-15', duration: '58:40', views: 62400, likes: 4950, comments: 512, link: 'https://www.youtube.com/@jelajahmalamasli'},
+    {id: 103, title: 'Kisah Nyata Relawan Evakuasi Jenazah Tragedi 1998 & Suara Misterius Minta Tolong', name: 'Pak Joko (Relawan)', date: '2026-08-10', duration: '1:14:20', views: 125000, likes: 9800, comments: 1420, link: 'https://www.youtube.com/@jelajahmalamasli'},
+    {id: 104, title: 'Ritual di Balik Kuburan Keramat & Perjanjian Gaib 7 Turunan', name: 'Ustadz Hanan', date: '2026-08-04', duration: '51:33', views: 48700, likes: 3900, comments: 445, link: 'https://www.youtube.com/@jelajahmalamasli'},
+    {id: 105, title: 'Kuntilanak di Rumah Sakit Tua & Kamar Mayat yang Terbengkalai', name: 'Ningsih', date: '2026-07-28', duration: '46:18', views: 39500, likes: 3100, comments: 310, link: 'https://www.youtube.com/@jelajahmalamasli'}
+  ]
+};
+
+let data = JSON.parse(localStorage.getItem(KEY) || 'null') || defaultData;
+let currentStatus = 'Semua';
+let calDate = new Date(2026, 7, 1);
+let activeYtVideoId = null;
+
+// AUTH FUNCTIONS
+function getAccessPassword() {
+  return localStorage.getItem(PASS_KEY) || DEFAULT_PASS;
+}
+
+function checkAuth() {
+  const isSessionAuth = sessionStorage.getItem('jl_auth_session') === 'true';
+  const isRememberAuth = localStorage.getItem('jl_remember_auth') === 'true';
+  
+  if (isSessionAuth || isRememberAuth) {
+    document.getElementById('lockScreen').style.display = 'none';
+  } else {
+    document.getElementById('lockScreen').style.display = 'flex';
+    setTimeout(() => {
+      document.getElementById('authPassInput')?.focus();
+    }, 150);
+  }
+}
+
+function handleLogin() {
+  const entered = document.getElementById('authPassInput').value.trim();
+  const correct = getAccessPassword();
+  const errorEl = document.getElementById('lockError');
+
+  if (entered === correct) {
+    sessionStorage.setItem('jl_auth_session', 'true');
+    if (document.getElementById('authRemember').checked) {
+      localStorage.setItem('jl_remember_auth', 'true');
+    } else {
+      localStorage.removeItem('jl_remember_auth');
+    }
+    errorEl.style.display = 'none';
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('authPassInput').value = '';
+    render();
+    toast('🔓 Selamat datang di Dashboard Tim Jelajah Malam!');
+  } else {
+    errorEl.style.display = 'block';
+    errorEl.textContent = '⚠️ Sandi akses salah! Silakan coba lagi.';
+    const input = document.getElementById('authPassInput');
+    input.focus();
+    input.select();
+  }
+}
+
+function togglePassVisibility() {
+  const input = document.getElementById('authPassInput');
+  const btn = document.getElementById('btnTogglePass');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+
+function handleLogout() {
+  if (confirm('Kunci dashboard sekarang? Anda harus memasukkan sandi untuk membuka kembali.')) {
+    sessionStorage.removeItem('jl_auth_session');
+    localStorage.removeItem('jl_remember_auth');
+    document.getElementById('authPassInput').value = '';
+    document.getElementById('lockError').style.display = 'none';
+    document.getElementById('lockScreen').style.display = 'flex';
+    toast('🔒 Dashboard berhasil dikunci.');
+  }
+}
+
+function changeAccessPassword() {
+  const current = getAccessPassword();
+  const oldPass = prompt('Masukkan sandi lama saat ini:');
+  if (oldPass === null) return;
+  if (oldPass.trim() !== current) {
+    return alert('❌ Sandi lama salah!');
+  }
+
+  const newPass = prompt('Masukkan sandi baru untuk tim:');
+  if (newPass === null) return;
+  if (!newPass.trim()) {
+    return alert('❌ Sandi baru tidak boleh kosong!');
+  }
+
+  localStorage.setItem(PASS_KEY, newPass.trim());
+  alert('✅ Sandi akses berhasil diubah menjadi: ' + newPass.trim());
+  toast('✅ Sandi akses tim diperbarui');
+}
+
+const GS_KEY = 'jl_gsheet_url';
+
+function getGSheetUrl() {
+  return localStorage.getItem(GS_KEY) || '';
+}
+
+function setGSheetUrl(url) {
+  if (url) {
+    localStorage.setItem(GS_KEY, url.trim());
+  } else {
+    localStorage.removeItem(GS_KEY);
+  }
+}
+
+let isSyncing = false;
+async function pushToGSheet() {
+  const url = getGSheetUrl();
+  if (!url || isSyncing) return;
+  
+  isSyncing = true;
+  updateSyncBadge('syncing');
+  
+  try {
+    const payload = {
+      stock: data.stock,
+      published: data.published,
+      notes: localStorage.getItem('jl_notes') || ''
+    };
+    
+    await fetch(url, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload)
+    });
+    
+    updateSyncBadge('connected');
+    console.log('Tersimpan ke Google Sheets');
+  } catch (err) {
+    console.error('Gagal sinkron ke Google Sheets:', err);
+    updateSyncBadge('error');
+  } finally {
+    isSyncing = false;
+  }
+}
+
+async function fetchFromGSheet(silent = false) {
+  const url = getGSheetUrl();
+  if (!url) return;
+
+  updateSyncBadge('syncing');
+  if (!silent) toast('🔄 Menghubungkan ke Google Sheets...');
+
+  try {
+    const res = await fetch(url);
+    const json = await res.json();
+
+    if (json.status === 'success' && json.data) {
+      if (Array.isArray(json.data.stock) && json.data.stock.length > 0) {
+        data.stock = json.data.stock;
+      }
+      if (Array.isArray(json.data.published) && json.data.published.length > 0) {
+        data.published = json.data.published;
+      }
+      if (json.notes) {
+        localStorage.setItem('jl_notes', json.notes);
+      }
+      localStorage.setItem(KEY, JSON.stringify(data));
+      render();
+      updateSyncBadge('connected');
+      if (!silent) toast('✅ Data terbaru berhasil dimuat dari Google Sheets!');
+    } else {
+      updateSyncBadge('connected');
+    }
+  } catch (err) {
+    console.warn('GSheet fetch warning:', err);
+    updateSyncBadge('connected');
+    if (!silent) toast('⚠️ Menggunakan data lokal (Google Sheets sedang offline).');
+  }
+}
+
+function updateSyncBadge(status) {
+  const badge = document.getElementById('gsheetSyncBadge');
+  const label = document.getElementById('gsheetStatusLabel');
+  const url = getGSheetUrl();
+
+  if (badge) {
+    if (!url) {
+      badge.style.display = 'none';
+    } else {
+      badge.style.display = 'inline-flex';
+      if (status === 'syncing') {
+        badge.innerHTML = '🔄 <span style="margin-left:4px">Menyinkronkan...</span>';
+        badge.style.borderColor = '#f5b72f';
+        badge.style.color = '#f5b72f';
+      } else if (status === 'error') {
+        badge.innerHTML = '⚠️ <span style="margin-left:4px">Gagal Terhubung Sheet</span>';
+        badge.style.borderColor = '#ff4b57';
+        badge.style.color = '#ff4b57';
+      } else {
+        badge.innerHTML = '🟢 <span style="margin-left:4px">Google Sheets Aktif</span>';
+        badge.style.borderColor = 'rgba(37,197,111,0.4)';
+        badge.style.color = '#42dd91';
+      }
+    }
+  }
+
+  if (label) {
+    if (!url) {
+      label.textContent = 'Belum Terhubung';
+      label.style.color = '#9aa2ad';
+      label.style.borderColor = '#283342';
+    } else {
+      label.textContent = '🟢 Terhubung ke Google Sheets';
+      label.style.color = '#42dd91';
+      label.style.borderColor = 'rgba(37,197,111,0.4)';
+    }
+  }
+}
+
+function saveGSheetConfig() {
+  const input = document.getElementById('inputGSheetUrl');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) return alert('Silakan masukkan URL Aplikasi Web Google Apps Script terlebih dahulu!');
+  
+  if (!val.startsWith('https://script.google.com/macros/s/')) {
+    if (!confirm('URL tampaknya bukan link Web App Google Apps Script resmi (biasanya diawali https://script.google.com/macros/s/...). Tetap simpan?')) {
+      return;
+    }
+  }
+
+  setGSheetUrl(val);
+  updateSyncBadge('connected');
+  toast('💾 URL Google Sheets disimpan! Menguji koneksi...');
+  pushToGSheet();
+  fetchFromGSheet(false);
+}
+
+function disconnectGSheet() {
+  if (confirm('Putuskan koneksi dengan Google Sheets? Dashboard akan kembali menggunakan penyimpanan lokal perangkat ini.')) {
+    setGSheetUrl('');
+    const input = document.getElementById('inputGSheetUrl');
+    if (input) input.value = '';
+    updateSyncBadge();
+    toast('Koneksi Google Sheets diputuskan');
+  }
+}
+
+function saveData() {
+  localStorage.setItem(KEY, JSON.stringify(data));
+  pushToGSheet();
+}
+
+const INDO_MONTHS = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+];
+
+function fmtDate(s) {
+  if (!s) return '—';
+  try {
+    const parts = s.split('-');
+    if (parts.length === 3) {
+      const year = parts[0];
+      const monthIdx = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      if (!isNaN(monthIdx) && monthIdx >= 0 && monthIdx < 12 && !isNaN(day)) {
+        return `${day} ${INDO_MONTHS[monthIdx]} ${year}`;
+      }
+    }
+    const d = new Date(s + 'T00:00:00');
+    if (!isNaN(d.getTime())) {
+      return `${d.getDate()} ${INDO_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    }
+    return s;
+  } catch (e) {
+    return s;
+  }
+}
+
+function badge(s) {
+  const c = s === 'Siap Tayang' ? 'b-ready' : s === 'Editing' ? 'b-edit' : s === 'Sudah Tayang' ? 'b-done' : 'b-new';
+  return `<span class="badge ${c}">${s}</span>`;
+}
+
+function initials(n) {
+  if (!n) return '?';
+  return n.trim().split(' ').slice(0, 2).map(x => x[0]).join('').toUpperCase();
+}
+
+function number(n) {
+  return Intl.NumberFormat('id-ID', {notation: 'compact', maximumFractionDigits: 1}).format(n || 0);
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.innerHTML = msg;
+  t.classList.add('show');
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// YOUTUBE HELPERS
+function extractYoutubeId(url) {
+  if (!url) return '';
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+  return match ? match[1] : '';
+}
+
+function getYoutubeThumbnail(video) {
+  const ytId = extractYoutubeId(video.link);
+  if (ytId) {
+    return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  }
+  return 'logo.png';
+}
+
+// MAIN RENDER
+function render() {
+  const now = new Date();
+  const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+  const fullToday = `${dayNames[now.getDay()]}, ${now.getDate()} ${INDO_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('currentDateBadge').textContent = fullToday;
+
+  const counts = {ready: 0, editing: 0, done: 0};
+  data.stock.forEach(x => {
+    if (x.status === 'Siap Tayang') counts.ready++;
+    if (x.status === 'Editing') counts.editing++;
+    if (x.status === 'Sudah Tayang') counts.done++;
+  });
+
+  const uniqueNarasumber = new Set(data.stock.map(x => x.name.trim()).filter(Boolean)).size;
+  document.getElementById('mNarasumber').textContent = uniqueNarasumber;
+  document.getElementById('mReady').textContent = counts.ready;
+  document.getElementById('mEditing').textContent = counts.editing;
+  document.getElementById('mDone').textContent = data.published.length;
+
+  const future = data.stock.filter(x => x.target).sort((a, b) => a.target.localeCompare(b.target))[0];
+  document.getElementById('mNext').textContent = future ? fmtDate(future.target) : '—';
+  document.getElementById('mNextTitle').textContent = future ? future.title : 'Belum ada jadwal tayang';
+
+  renderStock();
+  renderPublished();
+  renderRecent();
+  renderCal();
+}
+
+// RENDER STOK TABLE
+function renderStock() {
+  const q = (document.getElementById('stockSearch')?.value || '').toLowerCase();
+  const sf = document.getElementById('stockFilter')?.value || 'Semua Status';
+  let arr = data.stock.filter(x => (currentStatus === 'Semua' || x.status === currentStatus) && (sf === 'Semua Status' || x.status === sf));
+  
+  if (q) {
+    arr = arr.filter(x => (x.name + ' ' + x.title + ' ' + (x.note || '')).toLowerCase().includes(q));
+  }
+
+  const body = document.getElementById('stockBody');
+  if (!body) return;
+
+  if (!arr.length) {
+    body.innerHTML = `<tr><td colspan="7" class="empty">Belum ada data narasumber / stok video yang sesuai.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = arr.map(x => `
+    <tr>
+      <td>
+        <div class="person">
+          <div class="pic">${initials(x.name)}</div>
+          <div>
+            <b>${x.name}</b>
+            ${x.link ? `<div style="font-size:10px"><a href="${x.link}" target="_blank" style="color:#5b8cff">🔗 Link Bahan</a></div>` : ''}
+          </div>
+        </div>
+      </td>
+      <td>${fmtDate(x.date)}</td>
+      <td style="max-width:240px;word-break:break-word">${x.title}</td>
+      <td>${badge(x.status)}</td>
+      <td>${fmtDate(x.target)}</td>
+      <td style="max-width:200px;color:#9aa2ad;font-size:11px">${x.note || '—'}</td>
+      <td style="text-align:center">
+        <div style="display:flex;gap:5px;justify-content:center">
+          <button class="btn ghost btn-sm" title="Edit Data" onclick="editItem(${x.id})">✏️ Edit</button>
+          <button class="btn danger btn-sm" title="Hapus Narasumber" onclick="deleteItem(${x.id})">🗑️ Hapus</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// HAPUS NARASUMBER / STOK
+function deleteItem(id) {
+  const item = data.stock.find(x => String(x.id) === String(id));
+  if (!item) return;
+  
+  const confirmMsg = `Yakin ingin menghapus narasumber "${item.name}"?\nTopik: ${item.title}`;
+  if (confirm(confirmMsg)) {
+    data.stock = data.stock.filter(x => String(x.id) !== String(id));
+    saveData();
+    render();
+    if (document.getElementById('otherPage').style.display !== 'none') {
+      renderFullStock();
+    }
+    toast(`🗑️ Narasumber <b>${item.name}</b> berhasil dihapus.`);
+  }
+}
+
+function deleteCurrentFromModal() {
+  const id = document.getElementById('modal').dataset.edit;
+  if (id) {
+    closeModal();
+    deleteItem(id);
+  }
+}
+
+// MODAL ADD / EDIT NARASUMBER
+function openAdd() {
+  clearForm();
+  document.getElementById('modalTitle').textContent = 'Tambah Stok Video & Narasumber';
+  document.getElementById('btnModalDelete').style.display = 'none';
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('fName').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+}
+
+function clearForm() {
+  ['fName', 'fDate', 'fTitle', 'fTarget', 'fNote', 'fLink'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('fStatus').value = 'Belum Diedit';
+  document.getElementById('modal').dataset.edit = '';
+}
+
+function editItem(id) {
+  const x = data.stock.find(i => String(i.id) === String(id));
+  if (!x) return;
+  openAdd();
+  document.getElementById('modalTitle').textContent = 'Edit Data Narasumber';
+  document.getElementById('modal').dataset.edit = id;
+  document.getElementById('btnModalDelete').style.display = 'inline-flex';
+  
+  document.getElementById('fName').value = x.name || '';
+  document.getElementById('fDate').value = x.date || '';
+  document.getElementById('fTitle').value = x.title || '';
+  document.getElementById('fStatus').value = x.status || 'Belum Diedit';
+  document.getElementById('fTarget').value = x.target || '';
+  document.getElementById('fNote').value = x.note || '';
+  document.getElementById('fLink').value = x.link || '';
+}
+
+function saveItem() {
+  const name = document.getElementById('fName').value.trim();
+  const title = document.getElementById('fTitle').value.trim();
+  if (!name || !title) {
+    return toast('⚠️ Nama narasumber dan judul wajib diisi!');
+  }
+
+  const item = {
+    name,
+    date: document.getElementById('fDate').value,
+    title,
+    status: document.getElementById('fStatus').value,
+    target: document.getElementById('fTarget').value,
+    note: document.getElementById('fNote').value.trim(),
+    link: document.getElementById('fLink').value.trim()
+  };
+
+  const editId = document.getElementById('modal').dataset.edit;
+  if (editId) {
+    const targetObj = data.stock.find(x => String(x.id) === String(editId));
+    if (targetObj) Object.assign(targetObj, item);
+    toast('✅ Data narasumber berhasil diperbarui');
+  } else {
+    item.id = Date.now();
+    data.stock.unshift(item);
+    
+    // Pastikan filter tab di-reset ke 'Semua' agar narasumber baru langsung kelihatan
+    currentStatus = 'Semua';
+    document.querySelectorAll('#statusTabs .tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.status === 'Semua');
+    });
+    const sf = document.getElementById('stockFilter');
+    if (sf) sf.value = 'Semua Status';
+    const ss = document.getElementById('stockSearch');
+    if (ss) ss.value = '';
+
+    toast('✅ Narasumber baru berhasil ditambahkan');
+  }
+
+  saveData();
+  closeModal();
+  render();
+  if (document.getElementById('otherPage').style.display !== 'none') {
+    renderFullStock();
+  }
+}
+
+// RENDER PUBLISHED VIDEOS
+function renderPublished() {
+  const body = document.getElementById('publishedBody');
+  if (!body) return;
+
+  if (!data.published.length) {
+    body.innerHTML = `<tr><td colspan="7" class="empty">Belum ada video tayang yang tersimpan.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = data.published.map(x => `
+    <tr>
+      <td style="max-width:240px;word-break:break-word">
+        <b>${x.title}</b>
+        <div style="color:#737c87;font-size:11px;margin-top:2px">⏱ ${x.duration || '—'}</div>
+      </td>
+      <td>${x.name || '—'}</td>
+      <td>${fmtDate(x.date)}</td>
+      <td>${number(x.views)}</td>
+      <td>${number(x.likes)}</td>
+      <td>${number(x.comments)}</td>
+      <td style="text-align:center">
+        <div style="display:flex;gap:4px;justify-content:center">
+          <button class="btn ghost btn-sm" title="Buka YouTube" onclick="window.open('${x.link || 'https://www.youtube.com/@jelajahmalamasli'}','_blank')">↗</button>
+          <button class="btn ghost btn-sm" title="Edit Video" onclick="editPublishedItem(${x.id})">✏️</button>
+          <button class="btn danger btn-sm" title="Hapus Video" onclick="deletePublished(${x.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderRecent() {
+  const el = document.getElementById('recentList');
+  if (!el) return;
+  el.innerHTML = data.published.slice(0, 4).map(x => `
+    <div class="video-card">
+      <div class="thumb" style="overflow:hidden;padding:0">
+        <img src="${getYoutubeThumbnail(x)}" alt="Thumbnail" style="width:100%;height:100%;object-fit:cover">
+      </div>
+      <div>
+        <h4>${x.title}</h4>
+        <p>${x.name ? x.name + ' • ' : ''}${fmtDate(x.date)}</p>
+      </div>
+      <div class="stats">
+        <strong>${number(x.views)} views</strong>
+        <span>♥ ${number(x.likes)}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// MODAL PUBLISHED (TAMBAH / EDIT / HAPUS VIDEO TAYANG)
+function openAddPublished() {
+  ['pubTitle', 'pubName', 'pubDate', 'pubDuration', 'pubViews', 'pubLikes', 'pubComments', 'pubLink'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('modalPublished').dataset.edit = '';
+  document.getElementById('modalPublishedTitle').textContent = 'Tambah Video Konten YouTube';
+  document.getElementById('btnModalPubDelete').style.display = 'none';
+  document.getElementById('pubLink').value = 'https://www.youtube.com/@jelajahmalamasli';
+  document.getElementById('modalPublished').classList.add('show');
+  document.getElementById('pubTitle').focus();
+}
+
+function closePublishedModal() {
+  document.getElementById('modalPublished').classList.remove('show');
+}
+
+function editPublishedItem(id) {
+  const x = data.published.find(i => String(i.id) === String(id));
+  if (!x) return;
+  openAddPublished();
+  document.getElementById('modalPublished').dataset.edit = id;
+  document.getElementById('modalPublishedTitle').textContent = 'Edit Video Konten YouTube';
+  document.getElementById('btnModalPubDelete').style.display = 'inline-flex';
+  
+  document.getElementById('pubTitle').value = x.title || '';
+  document.getElementById('pubName').value = x.name || '';
+  document.getElementById('pubDate').value = x.date || '';
+  document.getElementById('pubDuration').value = x.duration || '';
+  document.getElementById('pubViews').value = x.views || 0;
+  document.getElementById('pubLikes').value = x.likes || 0;
+  document.getElementById('pubComments').value = x.comments || 0;
+  document.getElementById('pubLink').value = x.link || '';
+}
+
+function savePublishedItem() {
+  const title = document.getElementById('pubTitle').value.trim();
+  if (!title) return toast('⚠️ Judul video wajib diisi!');
+
+  const item = {
+    title,
+    name: document.getElementById('pubName').value.trim(),
+    date: document.getElementById('pubDate').value,
+    duration: document.getElementById('pubDuration').value.trim() || '—',
+    views: Number(document.getElementById('pubViews').value) || 0,
+    likes: Number(document.getElementById('pubLikes').value) || 0,
+    comments: Number(document.getElementById('pubComments').value) || 0,
+    link: document.getElementById('pubLink').value.trim() || 'https://www.youtube.com/@jelajahmalamasli'
+  };
+
+  const editId = document.getElementById('modalPublished').dataset.edit;
+  if (editId) {
+    const target = data.published.find(x => String(x.id) === String(editId));
+    if (target) Object.assign(target, item);
+    toast('✅ Video YouTube diperbarui');
+  } else {
+    item.id = Date.now();
+    data.published.unshift(item);
+    toast('✅ Video YouTube berhasil ditambahkan');
+  }
+
+  saveData();
+  closePublishedModal();
+  render();
+  if (document.getElementById('otherPage').style.display !== 'none') {
+    if (document.querySelector('.nav a[data-page="analytics"]').classList.contains('active')) {
+      renderAnalytics();
+    } else {
+      renderFullPublished();
+    }
+  }
+}
+
+function deletePublished(id) {
+  const item = data.published.find(x => String(x.id) === String(id));
+  if (!item) return;
+  if (confirm(`Yakin ingin menghapus data video "${item.title}"?`)) {
+    data.published = data.published.filter(x => String(x.id) !== String(id));
+    saveData();
+    render();
+    if (document.getElementById('otherPage').style.display !== 'none') {
+      if (document.querySelector('.nav a[data-page="analytics"]').classList.contains('active')) {
+        renderAnalytics();
+      } else {
+        renderFullPublished();
+      }
+    }
+    toast(`🗑️ Video "${item.title}" dihapus`);
+  }
+}
+
+function deletePublishedFromModal() {
+  const id = document.getElementById('modalPublished').dataset.edit;
+  if (id) {
+    closePublishedModal();
+    deletePublished(id);
+  }
+}
+
+// CALENDAR RENDER
+function changeMonth(delta) {
+  calDate.setMonth(calDate.getMonth() + delta);
+  renderCal();
+}
+
+function renderCal() {
+  const el = document.getElementById('miniCal');
+  if (!el) return;
+
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+  
+  document.getElementById('calMonthTitle').textContent = `${monthNames[month]} ${year}`;
+
+  const heads = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  let out = heads.map(h => `<div class="head">${h}</div>`).join('');
+  
+  const firstDay = new Date(year, month, 1);
+  let startIdx = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let i = 0; i < startIdx; i++) out += '<div></div>';
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const items = data.stock.filter(x => x.date === dateStr || x.target === dateStr);
+    const isToday = dateStr === todayStr;
+    const cls = isToday ? 'today' : '';
+    out += `<div class="${cls}" title="${items.length ? items.map(x => x.name + ': ' + x.title).join('\n') : ''}">${d}${items.length ? '<span class="dot"></span>' : ''}</div>`;
+  }
+  el.innerHTML = out;
+}
+
+// EXPORT & IMPORT FEATURES
+function exportDataJSON() {
+  const exportPayload = {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    channel: 'Podcast Jelajah Malam (@jelajahmalamasli)',
+    data: data,
+    notes: localStorage.getItem('jl_notes') || ''
+  };
+
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload, null, 2));
+  const downloadAnchor = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0, 10);
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", `backup_jelajah_malam_${dateStr}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  toast('📥 File backup JSON berhasil di-download!');
+}
+
+function exportStockCSV() {
+  if (!data.stock.length) return toast('⚠️ Belum ada data untuk di-export');
+  
+  const headers = ['ID', 'Narasumber', 'Tanggal Rekaman', 'Judul / Topik', 'Status', 'Target Tayang', 'Catatan', 'Link'];
+  const rows = data.stock.map(x => [
+    x.id,
+    `"${(x.name || '').replace(/"/g, '""')}"`,
+    x.date || '',
+    `"${(x.title || '').replace(/"/g, '""')}"`,
+    `"${(x.status || '').replace(/"/g, '""')}"`,
+    x.target || '',
+    `"${(x.note || '').replace(/"/g, '""')}"`,
+    `"${(x.link || '').replace(/"/g, '""')}"`
+  ]);
+
+  const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0, 10);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `stok_narasumber_${dateStr}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  toast('📊 Data Stok Narasumber berhasil di-export ke CSV!');
+}
+
+function importDataJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      let importedData = null;
+
+      if (parsed.data && parsed.data.stock) {
+        importedData = parsed.data;
+        if (parsed.notes) localStorage.setItem('jl_notes', parsed.notes);
+      } else if (parsed.stock) {
+        importedData = parsed;
+      }
+
+      if (!importedData || !Array.isArray(importedData.stock)) {
+        throw new Error('Format JSON tidak valid untuk dashboard ini.');
+      }
+
+      if (confirm(`File backup valid!\n\nJumlah Narasumber: ${importedData.stock.length}\nJumlah Video Tayang: ${importedData.published ? importedData.published.length : 0}\n\nApakah Anda ingin mengganti data dashboard saat ini dengan data backup ini?`)) {
+        data = importedData;
+        saveData();
+        render();
+        toast(`✅ Berhasil import! ${data.stock.length} narasumber dimuat.`);
+      }
+    } catch (err) {
+      alert('Gagal membaca file backup JSON: ' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// ANALYTICS & YOUTUBE PLAYER RENDERING
+function renderAnalytics() {
+  const totalViews = data.published.reduce((a, b) => a + (b.views || 0), 0);
+  const totalLikes = data.published.reduce((a, b) => a + (b.likes || 0), 0);
+  const totalComments = data.published.reduce((a, b) => a + (b.comments || 0), 0);
+  const avgViews = data.published.length ? Math.round(totalViews / data.published.length) : 0;
+
+  let activeVideo = data.published.find(v => v.id === activeYtVideoId) || data.published[0];
+  const ytVideoId = activeVideo ? extractYoutubeId(activeVideo.link) : '';
+
+  const q = (document.getElementById('ytSearch')?.value || '').toLowerCase();
+  const sortMode = document.getElementById('ytSort')?.value || 'views';
+
+  let list = [...data.published];
+  if (sortMode === 'views') list.sort((a, b) => (b.views || 0) - (a.views || 0));
+  if (sortMode === 'likes') list.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+  if (sortMode === 'comments') list.sort((a, b) => (b.comments || 0) - (a.comments || 0));
+  if (sortMode === 'date') list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  if (q) {
+    list = list.filter(v => (v.title + ' ' + (v.name || '')).toLowerCase().includes(q));
+  }
+
+  const container = document.getElementById('otherPage');
+  container.innerHTML = `
+    <div class="section card">
+      <div class="section-head">
+        <h2>📈 Analytics & Galeri Video YouTube</h2>
+        <div class="actions">
+          <button class="btn primary" onclick="openAddPublished()">＋ Tambah Video YouTube</button>
+          <a href="https://www.youtube.com/@jelajahmalamasli" target="_blank" class="btn" style="background:#e31d2b;border-color:#ff3442;color:#fff">▶ Buka YouTube Channel ↗</a>
+        </div>
+      </div>
+
+      <!-- METRIC CARDS -->
+      <div class="metrics" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+        <div class="metric card" style="background:#0f141a">
+          <div class="top"><span>Total Views YouTube</span><div class="ico" style="background:#111f3c;color:#7da3ff">▶</div></div>
+          <strong>${number(totalViews)}</strong>
+          <div class="trend blue">Akumulasi seluruh episode</div>
+        </div>
+        <div class="metric card" style="background:#0f141a">
+          <div class="top"><span>Total Likes</span><div class="ico" style="background:#0c2a1c;color:#42dd91">♥</div></div>
+          <strong>${number(totalLikes)}</strong>
+          <div class="trend green">Total interaksi penonton</div>
+        </div>
+        <div class="metric card" style="background:#0f141a">
+          <div class="top"><span>Total Komentar</span><div class="ico" style="background:#321117;color:#ff4050">💬</div></div>
+          <strong>${number(totalComments)}</strong>
+          <div class="trend red">Feedback & respon cerita</div>
+        </div>
+        <div class="metric card" style="background:#0f141a">
+          <div class="top"><span>Rata-Rata Views</span><div class="ico" style="background:#30220e;color:#ffc23d">📊</div></div>
+          <strong>${number(avgViews)}</strong>
+          <div class="trend yellow">Per episode tayang</div>
+        </div>
+      </div>
+
+      <!-- EMBEDDED PLAYER SPOTLIGHT -->
+      <div class="yt-player-box" id="playerSpotlight">
+        <div class="yt-player-header">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="background:#e31d2b;color:#fff;font-size:10px;padding:3px 8px;border-radius:5px;font-weight:700">YOUTUBE SPOTLIGHT</span>
+            <b style="font-size:13px;color:#d5dbe3">Channel: Podcast Jelajah Malam (@jelajahmalamasli)</b>
+          </div>
+          <span style="font-size:11px;color:#8f98a5">▶ 320K Subscribers</span>
+        </div>
+
+        <div class="yt-player-frame-wrap">
+          ${ytVideoId ? `
+            <iframe src="https://www.youtube.com/embed/${ytVideoId}?autoplay=0&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          ` : `
+            <div class="yt-player-fallback">
+              <div style="width:70px;height:50px;margin-bottom:12px">
+                <img src="logo.png" alt="Logo" style="width:100%;height:100%;object-fit:contain">
+              </div>
+              <h3 style="margin:0 0 8px;font-size:18px;color:#fff">${activeVideo ? activeVideo.title : 'Podcast Jelajah Malam'}</h3>
+              <p style="margin:0 0 16px;color:#9da4af;font-size:13px;max-width:520px">
+                ${activeVideo ? (activeVideo.name ? 'Narasumber: ' + activeVideo.name + ' • ' : '') + fmtDate(activeVideo.date) : 'Kanal resmi cerita horor, misteri & pengalaman spiritual asli.'}
+              </p>
+              <a href="${activeVideo ? (activeVideo.link || 'https://www.youtube.com/@jelajahmalamasli') : 'https://www.youtube.com/@jelajahmalamasli'}" target="_blank" class="yt-btn" style="width:auto;padding:10px 22px;font-size:13px">
+                ▶ Tonton Langsung di YouTube Channel ↗
+              </a>
+            </div>
+          `}
+        </div>
+
+        ${activeVideo ? `
+          <div class="yt-player-meta">
+            <div class="yt-player-info">
+              <h3>${activeVideo.title}</h3>
+              <p>${activeVideo.name ? '🎙 Narasumber: ' + activeVideo.name + ' • ' : ''}📅 Tayang: ${fmtDate(activeVideo.date)} • ⏱ Durasi: ${activeVideo.duration || '—'}</p>
+            </div>
+            <div class="yt-player-stats">
+              <div class="yt-stat-badge">
+                <strong>${number(activeVideo.views)}</strong>
+                <span>Views</span>
+              </div>
+              <div class="yt-stat-badge">
+                <strong>${number(activeVideo.likes)}</strong>
+                <span>Likes</span>
+              </div>
+              <div class="yt-stat-badge">
+                <strong>${number(activeVideo.comments)}</strong>
+                <span>Komentar</span>
+              </div>
+              <button class="btn" style="background:#1f2630;border-color:#384252" onclick="window.open('${activeVideo.link || 'https://www.youtube.com/@jelajahmalamasli'}','_blank')">↗ Buka di YouTube</button>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- VIDEO GALLERY SECTION -->
+      <div style="margin-top:24px">
+        <div class="section-head">
+          <h2>📺 Daftar Video Konten Jelajah Malam (${list.length} Episode)</h2>
+          <div class="actions">
+            <div class="toolbar" style="margin:0">
+              <input id="ytSearch" placeholder="Cari judul episode atau narasumber..." value="${q}" style="width:240px">
+              <select id="ytSort" style="width:160px">
+                <option value="views" ${sortMode === 'views' ? 'selected' : ''}>🔥 Views Terbanyak</option>
+                <option value="likes" ${sortMode === 'likes' ? 'selected' : ''}>♥ Likes Terbanyak</option>
+                <option value="comments" ${sortMode === 'comments' ? 'selected' : ''}>💬 Komentar Terbanyak</option>
+                <option value="date" ${sortMode === 'date' ? 'selected' : ''}>📅 Tanggal Terbaru</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        ${list.length ? `
+          <div class="video-grid-yt">
+            ${list.map(v => {
+              const vThumb = getYoutubeThumbnail(v);
+              const isSelected = activeVideo && activeVideo.id === v.id;
+              return `
+                <div class="video-card-yt" style="${isSelected ? 'border-color:#ff4050;box-shadow:0 0 16px rgba(227,29,43,0.3)' : ''}">
+                  <div class="yt-thumb-wrap" onclick="selectAnalyticsVideo(${v.id})">
+                    <img src="${vThumb}" alt="${v.title}">
+                    <div class="yt-play-icon">▶</div>
+                    <div class="yt-thumb-duration">${v.duration || 'Video'}</div>
+                  </div>
+                  <div class="yt-card-body">
+                    <div>
+                      <h4 title="${v.title}">${v.title}</h4>
+                      <p>${v.name ? '🎙 ' + v.name + ' • ' : ''}${fmtDate(v.date)}</p>
+                    </div>
+                    <div>
+                      <div class="yt-card-metrics">
+                        <span>👁 ${number(v.views)}</span>
+                        <span>♥ ${number(v.likes)}</span>
+                        <span>💬 ${number(v.comments)}</span>
+                      </div>
+                      <div class="yt-card-actions">
+                        <button class="btn primary btn-sm" style="flex:1;justify-content:center" onclick="selectAnalyticsVideo(${v.id})">▶ Putar</button>
+                        <button class="btn ghost btn-sm" title="Buka di YouTube" onclick="window.open('${v.link || 'https://www.youtube.com/@jelajahmalamasli'}','_blank')">↗</button>
+                        <button class="btn ghost btn-sm" title="Edit Data" onclick="editPublishedItem(${v.id})">✏️</button>
+                        <button class="btn danger btn-sm" title="Hapus Video" onclick="deletePublished(${v.id})">🗑️</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : `
+          <div class="empty card" style="padding:40px;background:#0d1116">
+            Tidak ada video yang sesuai dengan pencarian Anda.<br>
+            <button class="btn primary btn-sm" style="margin-top:12px" onclick="openAddPublished()">＋ Tambah Video Baru</button>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('ytSearch')?.addEventListener('input', renderAnalytics);
+  document.getElementById('ytSort')?.addEventListener('change', renderAnalytics);
+}
+
+function selectAnalyticsVideo(id) {
+  activeYtVideoId = id;
+  renderAnalytics();
+  document.getElementById('playerSpotlight')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// NAVIGATION & OTHER PAGES
+function showPage(page) {
+  document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('active', a.dataset.page === page));
+  if (page === 'dashboard') {
+    document.getElementById('dashboardPage').style.display = 'grid';
+    document.getElementById('otherPage').style.display = 'none';
+    render();
+    return;
+  }
+
+  document.getElementById('dashboardPage').style.display = 'none';
+  const op = document.getElementById('otherPage');
+  op.style.display = 'block';
+
+  if (page === 'analytics') {
+    renderAnalytics();
+    return;
+  }
+
+  const map = {
+    stok: `
+      <div class="section card">
+        <div class="section-head">
+          <h2>🎥 Semua Stok Video & Narasumber</h2>
+          <div class="actions">
+            <button class="btn ghost" onclick="exportStockCSV()">📊 Unduh CSV</button>
+            <button class="btn primary" onclick="openAdd()">＋ Tambah Narasumber</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="fullSearch" placeholder="Cari narasumber, judul, catatan...">
+          <select id="fullFilter">
+            <option>Semua Status</option>
+            <option>Belum Diedit</option>
+            <option>Editing</option>
+            <option>Siap Tayang</option>
+            <option>Sudah Tayang</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Narasumber</th>
+                <th>Rekaman</th>
+                <th>Judul / Topik</th>
+                <th>Status</th>
+                <th>Target Tayang</th>
+                <th>Catatan</th>
+                <th style="text-align:center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="fullStock"></tbody>
+          </table>
+        </div>
+      </div>`,
+
+    tayang: `
+      <div class="section card">
+        <div class="section-head">
+          <h2>▶ Semua Video yang Sudah Tayang</h2>
+          <div class="actions">
+            <button class="btn primary" onclick="openAddPublished()">＋ Tambah Video Tayang</button>
+            <button class="btn ghost" onclick="showPage('analytics')">📈 Buka Analytics & Player</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Judul Video</th>
+                <th>Narasumber</th>
+                <th>Tanggal Tayang</th>
+                <th>Durasi</th>
+                <th>Views</th>
+                <th>Like</th>
+                <th>Komentar</th>
+                <th style="text-align:center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="fullPublished"></tbody>
+          </table>
+        </div>
+      </div>`,
+
+    kalender: `
+      <div class="section card">
+        <div class="section-head">
+          <h2>🗓 Kalender Konten & Jadwal Produksi</h2>
+          <div class="cal-nav">
+            <button class="btn ghost" onclick="changeMonth(-1);renderBigCal()">‹ Bulan Lalu</button>
+            <button class="btn ghost" onclick="changeMonth(1);renderBigCal()">Bulan Depan ›</button>
+          </div>
+        </div>
+        <div style="color:#99a1ac;font-size:12px;margin-bottom:14px">
+          Tanggal dengan titik merah menandakan ada jadwal rekaman atau target tayang episode Podcast.
+        </div>
+        <div class="cal-grid" id="bigCal"></div>
+      </div>`,
+
+    catatan: `
+      <div class="section card">
+        <div class="section-head">
+          <h2>📝 Catatan Produksi & Ide Konten</h2>
+        </div>
+        <textarea id="notes" style="width:100%;min-height:340px;background:#0c1014;color:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;outline:none;font-size:13px;line-height:1.6" placeholder="Tulis ide episode berikutnya, daftar narasumber yang ingin dihubungi, catatan perlengkapan podcast, sponsor, dll."></textarea>
+        <div style="margin-top:12px;display:flex;gap:10px">
+          <button class="btn primary" onclick="localStorage.setItem('jl_notes', document.getElementById('notes').value); toast('💾 Catatan berhasil disimpan!')">Simpan Catatan</button>
+        </div>
+      </div>`,
+
+    pengaturan: `
+      <div class="section card">
+        <div class="section-head">
+          <h2>⚙ Pengaturan, Keamanan & Backup Data</h2>
+        </div>
+        <p style="color:#9aa2ad;font-size:13px;line-height:1.6">
+          Kelola keamanan sandi akses tim, backup data secara berkala, atau pulihkan data dashboard.
+        </p>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:18px">
+          
+          <!-- GOOGLE SHEETS CLOUD DATABASE CARD -->
+          <div class="card" style="padding:18px;background:#0d1318;border:1px solid #1f3b2b;grid-column:1/-1">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:40px;height:40px;border-radius:10px;background:rgba(37,197,111,0.15);color:#42dd91;display:grid;place-items:center;font-size:20px">📊</div>
+                <div>
+                  <h3 style="margin:0;font-size:15px;color:#fff">Database Online (Google Sheets Terpusat)</h3>
+                  <p style="margin:2px 0 0;color:#8f98a5;font-size:12px">Sinkronkan data narasumber & video secara otomatis agar bisa diakses bersama tim dari HP maupun Laptop.</p>
+                </div>
+              </div>
+              <span id="gsheetStatusLabel" style="font-size:11px;padding:5px 12px;border-radius:7px;background:#131820;border:1px solid #283342">Belum Terhubung</span>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+              <input id="inputGSheetUrl" placeholder="Tempel URL Web App Google Apps Script di sini (https://script.google.com/macros/s/.../exec)" style="flex:1;min-width:280px;background:#080b0e;border:1px solid var(--line);color:#fff;border-radius:9px;padding:10px 12px;font-size:12px;outline:none">
+              <button class="btn primary" onclick="saveGSheetConfig()">💾 Simpan & Hubungkan</button>
+              <button class="btn ghost" onclick="fetchFromGSheet(false)">🔄 Tarik Data Sekarang</button>
+              <button class="btn danger" onclick="disconnectGSheet()">Putuskan</button>
+            </div>
+
+            <div style="margin-top:14px;background:#080a0d;border:1px solid #1b212b;border-radius:10px;padding:14px;font-size:12px;color:#abb2bd;line-height:1.6">
+              <b style="color:#fff">📋 Cara Menghubungkan ke Google Sheets (Cepat & Gratis):</b>
+              <ol style="margin:8px 0 0;padding-left:20px">
+                <li>Buka <a href="https://sheets.google.com" target="_blank" style="color:#42dd91;font-weight:600">Google Sheets ↗</a> dan buat Spreadsheet baru dengan judul <b>Database Jelajah Malam</b>.</li>
+                <li>Di menu Google Sheets, klik menu <b>Ekstensi (Extensions)</b> > <b>Apps Script</b>.</li>
+                <li>Hapus tulisan di sana, lalu copy-paste seluruh kode dari file <code>google_apps_script.js</code> (sudah saya siapkan di folder ini).</li>
+                <li>Klik tombol <b>Deploy</b> (kanan atas) > <b>Deployment baru</b> > pilih jenis <b>Aplikasi Web</b>.</li>
+                <li>Pilih: <i>Jalankan sebagai: Saya</i> dan <i>Akses: Siapa saja (Anyone)</i>, lalu klik <b>Deploy</b>.</li>
+                <li>Salin <b>URL Aplikasi Web</b> yang muncul, tempel di kotak input di atas, lalu klik tombol <b>Simpan & Hubungkan</b>!</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="card" style="padding:16px;background:#0f1318;border-color:#381a1f">
+            <h3 style="margin:0 0 8px;font-size:14px;color:#ff5b66">🔒 Sandi Akses Web (PIN)</h3>
+            <p style="color:#7f8792;font-size:12px;margin:0 0 12px">Sandi saat ini digunakan untuk membuka dashboard bagi tim produksi.</p>
+            <button class="btn primary" style="width:100%;justify-content:center" onclick="changeAccessPassword()">Ubah Sandi Akses</button>
+          </div>
+
+          <div class="card" style="padding:16px;background:#0f1318">
+            <h3 style="margin:0 0 8px;font-size:14px">📥 Backup Data (JSON)</h3>
+            <p style="color:#7f8792;font-size:12px;margin:0 0 12px">Download semua data narasumber, video tayang, dan catatan produksi dalam satu file backup.</p>
+            <button class="btn" style="width:100%;justify-content:center" onclick="exportDataJSON()">Download Backup JSON</button>
+          </div>
+
+          <div class="card" style="padding:16px;background:#0f1318">
+            <h3 style="margin:0 0 8px;font-size:14px">📊 Export ke Excel (CSV)</h3>
+            <p style="color:#7f8792;font-size:12px;margin:0 0 12px">Unduh daftar narasumber dalam format file spreadsheet Excel (CSV).</p>
+            <button class="btn ghost" style="width:100%;justify-content:center" onclick="exportStockCSV()">Download File CSV</button>
+          </div>
+
+          <div class="card" style="padding:16px;background:#0f1318">
+            <h3 style="margin:0 0 8px;font-size:14px">📤 Restore / Import Data</h3>
+            <p style="color:#7f8792;font-size:12px;margin:0 0 12px">Pulihkan data dashboard dari file backup JSON yang sebelumnya Anda simpan.</p>
+            <button class="btn" style="width:100%;justify-content:center" onclick="document.getElementById('importFileInput').click()">Pilih File Backup JSON</button>
+          </div>
+
+          <div class="card" style="padding:16px;background:#0f1318;border-color:var(--danger-border)">
+            <h3 style="margin:0 0 8px;font-size:14px;color:#ff7a7a">🗑 Reset Data</h3>
+            <p style="color:#7f8792;font-size:12px;margin:0 0 12px">Hapus semua data di browser dan kembalikan ke data contoh awal bawaan.</p>
+            <button class="btn danger" style="width:100%;justify-content:center" onclick="if(confirm('⚠️ PERINGATAN: Semua perubahan data Anda akan dihapus dan kembali ke default.\n\nApakah Anda yakin?')){localStorage.removeItem(KEY);location.reload()}">Reset ke Default</button>
+          </div>
+        </div>
+      </div>`
+  };
+
+  op.innerHTML = map[page] || '';
+  if (page === 'stok') renderFullStock();
+  if (page === 'tayang') renderFullPublished();
+  if (page === 'kalender') renderBigCal();
+  if (page === 'catatan') document.getElementById('notes').value = localStorage.getItem('jl_notes') || '';
+  if (page === 'pengaturan') {
+    const input = document.getElementById('inputGSheetUrl');
+    if (input) input.value = getGSheetUrl();
+    updateSyncBadge();
+  }
+}
+
+function renderFullStock() {
+  const q = (document.getElementById('fullSearch')?.value || '').toLowerCase();
+  const f = document.getElementById('fullFilter')?.value || 'Semua Status';
+  let arr = data.stock.filter(x => (f === 'Semua Status' || x.status === f) && (!q || (x.name + ' ' + x.title + ' ' + (x.note || '')).toLowerCase().includes(q)));
+  
+  const targetEl = document.getElementById('fullStock');
+  if (!targetEl) return;
+
+  if (!arr.length) {
+    targetEl.innerHTML = `<tr><td colspan="7" class="empty">Tidak ada data narasumber.</td></tr>`;
+    return;
+  }
+
+  targetEl.innerHTML = arr.map(x => `
+    <tr>
+      <td><b>${x.name}</b></td>
+      <td>${fmtDate(x.date)}</td>
+      <td>${x.title}</td>
+      <td>${badge(x.status)}</td>
+      <td>${fmtDate(x.target)}</td>
+      <td style="color:#9aa2ad">${x.note || '—'}</td>
+      <td style="text-align:center">
+        <div style="display:flex;gap:5px;justify-content:center">
+          <button class="btn ghost btn-sm" onclick="editItem(${x.id})">✏️ Edit</button>
+          <button class="btn danger btn-sm" onclick="deleteItem(${x.id})">🗑️ Hapus</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  document.getElementById('fullSearch')?.addEventListener('input', renderFullStock);
+  document.getElementById('fullFilter')?.addEventListener('change', renderFullStock);
+}
+
+function renderFullPublished() {
+  const targetEl = document.getElementById('fullPublished');
+  if (!targetEl) return;
+
+  if (!data.published.length) {
+    targetEl.innerHTML = `<tr><td colspan="8" class="empty">Belum ada data video tayang.</td></tr>`;
+    return;
+  }
+
+  targetEl.innerHTML = data.published.map(x => `
+    <tr>
+      <td><b>${x.title}</b></td>
+      <td>${x.name || '—'}</td>
+      <td>${fmtDate(x.date)}</td>
+      <td>${x.duration || '—'}</td>
+      <td>${number(x.views)}</td>
+      <td>${number(x.likes)}</td>
+      <td>${number(x.comments)}</td>
+      <td style="text-align:center">
+        <div style="display:flex;gap:5px;justify-content:center">
+          <button class="btn ghost btn-sm" onclick="window.open('${x.link || 'https://www.youtube.com/@jelajahmalamasli'}','_blank')">↗ Buka</button>
+          <button class="btn ghost btn-sm" onclick="editPublishedItem(${x.id})">✏️</button>
+          <button class="btn danger btn-sm" onclick="deletePublished(${x.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderBigCal() {
+  const el = document.getElementById('bigCal');
+  if (!el) return;
+
+  const year = calDate.getFullYear();
+  const month = calDate.getMonth();
+  const heads = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
+  let out = heads.map(h => `<div class="head">${h}</div>`).join('');
+  
+  const start = (new Date(year, month, 1).getDay() + 6) % 7;
+  const days = new Date(year, month + 1, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  for (let i = 0; i < start; i++) out += '<div></div>';
+  
+  for (let d = 1; d <= days; d++) {
+    const s = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const matched = data.stock.filter(x => x.date === s || x.target === s);
+    const isToday = s === todayStr;
+    out += `
+      <div class="${isToday ? 'today' : ''}" style="min-height:50px;text-align:left;padding:6px;border:1px solid #1c222b;background:#0d1116">
+        <b>${d}</b>
+        ${matched.map(m => `<div style="font-size:9px;color:${m.target === s ? '#ffc23d' : '#ff4050'};margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${m.name}: ${m.title}">• ${m.name}</div>`).join('')}
+      </div>
+    `;
+  }
+  el.innerHTML = out;
+}
+
+// EVENT LISTENERS
+document.getElementById('mobileMenu').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+document.querySelectorAll('.nav a').forEach(a => {
+  a.addEventListener('click', () => {
+    showPage(a.dataset.page);
+    if (window.innerWidth <= 860) {
+      document.getElementById('sidebar').classList.remove('open');
+    }
+  });
+});
+
+document.getElementById('stockSearch').addEventListener('input', renderStock);
+document.getElementById('stockFilter').addEventListener('change', renderStock);
+
+document.querySelectorAll('#statusTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#statusTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentStatus = t.dataset.status;
+    renderStock();
+  });
+});
+
+document.getElementById('globalSearch').addEventListener('input', e => {
+  document.getElementById('stockSearch').value = e.target.value;
+  renderStock();
+});
+
+document.getElementById('modal').addEventListener('click', e => {
+  if (e.target.id === 'modal') closeModal();
+});
+
+document.getElementById('modalPublished').addEventListener('click', e => {
+  if (e.target.id === 'modalPublished') closePublishedModal();
+});
+
+document.getElementById('authPassInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleLogin();
+});
+
+// INITIAL AUTH CHECK & RENDER
+checkAuth();
+render();
+updateSyncBadge();
+if (getGSheetUrl()) {
+  fetchFromGSheet(true);
+}
+</script>
+</body>
+</html>
