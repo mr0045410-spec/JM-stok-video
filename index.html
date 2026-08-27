@@ -683,9 +683,10 @@ function changeAccessPassword() {
 }
 
 const GS_KEY = 'jl_gsheet_url';
+const DEFAULT_GSHEET_URL = 'https://script.google.com/macros/s/AKfycbzX2BIajTwSPv6hI69rLTaM2m6Mi1Vu1-FLBUCx6Bt0PkXKmCa_Ah0ubqrivsFOwkGe/exec';
 
 function getGSheetUrl() {
-  return localStorage.getItem(GS_KEY) || '';
+  return localStorage.getItem(GS_KEY) || DEFAULT_GSHEET_URL;
 }
 
 function setGSheetUrl(url) {
@@ -742,17 +743,21 @@ async function fetchFromGSheet(silent = false) {
     const json = await res.json();
 
     if (json.status === 'success' && json.data) {
-      if (Array.isArray(json.data.stock) && json.data.stock.length > 0) {
+      if (Array.isArray(json.data.stock)) {
         data.stock = json.data.stock;
       }
-      if (Array.isArray(json.data.published) && json.data.published.length > 0) {
+      if (Array.isArray(json.data.published)) {
         data.published = json.data.published;
       }
-      if (json.notes) {
+      if (json.notes !== undefined) {
         localStorage.setItem('jl_notes', json.notes);
       }
       localStorage.setItem(KEY, JSON.stringify(data));
       render();
+      if (document.getElementById('otherPage').style.display !== 'none') {
+        const activeNav = document.querySelector('.nav a.active');
+        if (activeNav) showPage(activeNav.dataset.page);
+      }
       updateSyncBadge('connected');
       if (!silent) toast('✅ Data terbaru berhasil dimuat dari Google Sheets!');
     } else {
@@ -846,23 +851,39 @@ const INDO_MONTHS = [
 function fmtDate(s) {
   if (!s) return '—';
   try {
-    const parts = s.split('-');
-    if (parts.length === 3) {
+    const str = String(s).trim();
+    if (!str) return '—';
+    
+    // Format YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+      const parts = str.split('-');
       const year = parts[0];
       const monthIdx = parseInt(parts[1], 10) - 1;
       const day = parseInt(parts[2], 10);
-      if (!isNaN(monthIdx) && monthIdx >= 0 && monthIdx < 12 && !isNaN(day)) {
+      if (monthIdx >= 0 && monthIdx < 12) {
         return `${day} ${INDO_MONTHS[monthIdx]} ${year}`;
       }
     }
-    const d = new Date(s + 'T00:00:00');
+
+    // Bersihkan timezone seperti (Waktu Indonesia Barat)
+    const cleaned = str.replace(/\s*\([^)]*\)/g, '');
+    const d = new Date(cleaned);
     if (!isNaN(d.getTime())) {
       return `${d.getDate()} ${INDO_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
     }
-    return s;
+    return str;
   } catch (e) {
-    return s;
+    return String(s);
   }
+}
+
+function fmtDuration(d) {
+  if (!d) return '—';
+  const str = String(d).trim();
+  if (str.includes(':') && str.length <= 8 && !str.includes('GMT')) return str;
+  const match = str.match(/(\d{1,2}:\d{2}:\d{2})/);
+  if (match) return match[1];
+  return str.slice(0, 8);
 }
 
 function badge(s) {
@@ -1100,7 +1121,7 @@ function renderPublished() {
     <tr>
       <td style="max-width:240px;word-break:break-word">
         <b>${x.title}</b>
-        <div style="color:#737c87;font-size:11px;margin-top:2px">⏱ ${x.duration || '—'}</div>
+        <div style="color:#737c87;font-size:11px;margin-top:2px">⏱ ${fmtDuration(x.duration)}</div>
       </td>
       <td>${x.name || '—'}</td>
       <td>${fmtDate(x.date)}</td>
@@ -1790,7 +1811,7 @@ function renderFullPublished() {
       <td><b>${x.title}</b></td>
       <td>${x.name || '—'}</td>
       <td>${fmtDate(x.date)}</td>
-      <td>${x.duration || '—'}</td>
+      <td>${fmtDuration(x.duration)}</td>
       <td>${number(x.views)}</td>
       <td>${number(x.likes)}</td>
       <td>${number(x.comments)}</td>
