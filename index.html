@@ -201,28 +201,85 @@ a{color:inherit;text-decoration:none}
 .toast{position:fixed;right:20px;bottom:20px;background:#151a21;border:1px solid #343d49;color:#fff;border-radius:10px;padding:12px 16px;font-size:13px;opacity:0;transform:translateY(10px);transition:.22s;z-index:200;box-shadow:0 12px 30px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px}
 .toast.show{opacity:1;transform:none}
 
-/* RESPONSIVE */
+/* RESPONSIVE & MOBILE POLISH */
+.hide-mobile{display:inline-flex}
+.mobile-scroll-hint{display:none;font-size:11px;color:#7e8794;margin-bottom:8px;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:6px;align-items:center;gap:6px}
+
+/* SIDEBAR BACKDROP FOR MOBILE */
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(3px);z-index:39}
+.sidebar-backdrop.open{display:block}
+
+/* BOTTOM NAVIGATION BAR FOR MOBILE */
+.mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:62px;background:rgba(12,15,19,0.96);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid #232a35;z-index:45;padding:4px 6px;justify-content:space-around;align-items:center}
+.mb-nav-item{background:none;border:none;color:#858d9a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 8px;border-radius:8px;transition:.18s;flex:1;cursor:pointer}
+.mb-nav-item .mb-ico{font-size:18px;line-height:1;transition:.18s}
+.mb-nav-item .mb-label{font-size:10px;font-weight:600;letter-spacing:0.2px}
+.mb-nav-item.active{color:#ff4b57}
+.mb-nav-item.active .mb-ico{transform:scale(1.15)}
+
 @media(max-width:1200px){
   .metrics{grid-template-columns:repeat(3,1fr)}
   .grid{grid-template-columns:1fr}
   .search{width:200px}
 }
+
 @media(max-width:860px){
-  .sidebar{transform:translateX(-100%);transition:.25s}
-  .sidebar.open{transform:none;box-shadow:10px 0 40px rgba(0,0,0,0.8)}
-  .main{margin-left:0;width:100%;padding:16px}
+  .sidebar{transform:translateX(-100%);transition:.25s ease;z-index:40}
+  .sidebar.open{transform:none;box-shadow:12px 0 50px rgba(0,0,0,0.85)}
+  .main{margin-left:0;width:100%;padding:14px 14px 84px}
   .mobile-menu{display:grid}
-  .metrics{grid-template-columns:repeat(2,1fr)}
-  .search{order:4;width:100%}
-  .top-actions{width:100%;justify-content:space-between}
-  .yt-player-frame-wrap{padding-bottom:56.25%}
+  .mobile-bottom-nav{display:flex}
+  .toast{bottom:74px}
+  .hide-mobile{display:none !important}
+  
+  .topbar{flex-direction:column;align-items:stretch;gap:12px;margin-bottom:14px}
+  .welcome{display:flex;align-items:center;justify-content:space-between;width:100%}
+  .welcome h1{font-size:18px;line-height:1.3}
+  .welcome p{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+  
+  .top-actions{width:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:flex-start}
+  .search{width:100% !important;order:10}
+  .search input{width:100%;font-size:13px;padding:10px 38px 10px 14px}
+  
+  .metrics{grid-template-columns:repeat(2,1fr);gap:10px}
+  .metric{padding:12px 14px}
+  .metric strong{font-size:22px}
+  .metric:nth-child(5){grid-column:1/-1}
+  
+  .mobile-scroll-hint{display:flex}
+  .table-wrap{margin:0 -4px;padding:0 4px}
+  .table{min-width:620px}
+  
+  .video-grid-yt{grid-template-columns:1fr}
+  .yt-player-meta{flex-direction:column;align-items:flex-start}
+  .yt-player-stats{width:100%;justify-content:space-between}
 }
-@media(min-width:861px){.mobile-menu{display:none}}
+
+@media(min-width:861px){
+  .mobile-menu{display:none}
+}
+
 @media(max-width:560px){
-  .metrics{grid-template-columns:1fr}
-  .form{grid-template-columns:1fr}
+  .main{padding:12px 10px 84px}
+  .section{padding:14px 12px}
+  .section-head{flex-direction:column;align-items:flex-start;gap:10px}
+  .section-head .actions{width:100%;display:flex}
+  .section-head .actions .btn{flex:1;justify-content:center}
+  
+  .toolbar{flex-direction:column;gap:6px}
+  .toolbar input,.toolbar select{width:100%}
+  
+  .tabs{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tabs::-webkit-scrollbar{display:none}
+  
+  /* MODAL SLIDE UP ON MOBILE */
+  .modal-backdrop{padding:0;align-items:flex-end}
+  .modal{width:100%;max-height:88vh;border-radius:18px 18px 0 0;padding:18px 14px;overflow-y:auto}
+  .form{grid-template-columns:1fr;gap:10px}
   .form .full{grid-column:auto}
-  .welcome h1{font-size:18px}
+  .form input,.form select,.form textarea{font-size:13px;padding:10px 11px}
+  .modal-actions{margin-top:14px;position:sticky;bottom:0;background:#11151a;padding-top:8px}
+  
   .date-badge{display:none}
 }
 </style>
@@ -301,6 +358,9 @@ a{color:inherit;text-decoration:none}
     </div>
   </aside>
 
+  <!-- SIDEBAR BACKDROP FOR MOBILE -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMobileSidebar(false)"></div>
+
   <!-- MAIN VIEW -->
   <main class="main">
     <!-- TOPBAR -->
@@ -316,23 +376,24 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <div class="top-actions">
+        <!-- GOOGLE SHEETS LIVE SYNC BADGE -->
+        <button class="btn btn-sm" id="gsheetSyncBadge" style="display:none;font-size:11px;background:#0d1813;border-color:rgba(37,197,111,0.3);color:#42dd91" title="Klik untuk sinkronisasi ulang data dari Google Sheets" onclick="fetchFromGSheet(false)">🟢 Google Sheets Aktif</button>
+
+        <button class="btn danger btn-sm" title="Kunci Akses / Logout" onclick="handleLogout()">🔒 Kunci</button>
+
+        <!-- EXPORT & IMPORT QUICK BUTTONS (DESKTOP) -->
+        <button class="btn ghost hide-mobile" title="Export Backup Data (JSON)" onclick="exportDataJSON()">📥 Export</button>
+        <button class="btn ghost hide-mobile" title="Import Data Backup (JSON)" onclick="document.getElementById('importFileInput').click()">📤 Import</button>
+        <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importDataJSON(event)">
+
+        <button class="iconbtn hide-mobile" title="Notifikasi" onclick="toast('🔔 Belum ada notifikasi baru')">🔔</button>
+        <div class="avatar hide-mobile" title="Admin Jelajah Malam">JM</div>
+        <div class="date-badge hide-mobile" id="currentDateBadge">Hari ini</div>
+
         <div class="search">
           <input id="globalSearch" placeholder="Cari narasumber, judul, topik...">
           <span>⌕</span>
         </div>
-        
-        <!-- GOOGLE SHEETS LIVE SYNC BADGE -->
-        <button class="btn btn-sm" id="gsheetSyncBadge" style="display:none;font-size:11px;background:#0d1813;border-color:rgba(37,197,111,0.3);color:#42dd91" title="Klik untuk sinkronisasi ulang data dari Google Sheets" onclick="fetchFromGSheet(false)">🟢 Google Sheets Aktif</button>
-
-        <!-- EXPORT & IMPORT QUICK BUTTONS -->
-        <button class="btn ghost" title="Export Backup Data (JSON)" onclick="exportDataJSON()">📥 Export</button>
-        <button class="btn ghost" title="Import Data Backup (JSON)" onclick="document.getElementById('importFileInput').click()">📤 Import</button>
-        <input type="file" id="importFileInput" accept=".json" style="display:none" onchange="importDataJSON(event)">
-
-        <button class="btn danger btn-sm" title="Kunci Akses / Logout" onclick="handleLogout()">🔒 Kunci Web</button>
-        <button class="iconbtn" title="Notifikasi" onclick="toast('🔔 Belum ada notifikasi baru')">🔔</button>
-        <div class="avatar" title="Admin Jelajah Malam">JM</div>
-        <div class="date-badge" id="currentDateBadge">Hari ini</div>
       </div>
     </div>
 
@@ -396,6 +457,7 @@ a{color:inherit;text-decoration:none}
           </select>
         </div>
 
+        <div class="mobile-scroll-hint">👉 <i>Geser tabel ke samping untuk melihat detail & aksi</i></div>
         <div class="table-wrap">
           <table class="table">
             <thead>
@@ -444,6 +506,7 @@ a{color:inherit;text-decoration:none}
             <button class="btn ghost btn-sm" onclick="showPage('tayang')">Lihat Semua</button>
           </div>
         </div>
+        <div class="mobile-scroll-hint">👉 <i>Geser tabel ke samping untuk melihat detail & aksi</i></div>
         <div class="table-wrap">
           <table class="table">
             <thead>
@@ -564,6 +627,30 @@ a{color:inherit;text-decoration:none}
     </div>
   </div>
 </div>
+
+<!-- BOTTOM NAVIGATION BAR KHUSUS HP -->
+<nav class="mobile-bottom-nav" id="mobileBottomNav">
+  <button class="mb-nav-item active" data-page="dashboard" onclick="switchMobileNav('dashboard')">
+    <span class="mb-ico">📊</span>
+    <span class="mb-label">Utama</span>
+  </button>
+  <button class="mb-nav-item" data-page="stok" onclick="switchMobileNav('stok')">
+    <span class="mb-ico">🎙️</span>
+    <span class="mb-label">Stok</span>
+  </button>
+  <button class="mb-nav-item" data-page="tayang" onclick="switchMobileNav('tayang')">
+    <span class="mb-ico">🎬</span>
+    <span class="mb-label">Tayang</span>
+  </button>
+  <button class="mb-nav-item" data-page="analytics" onclick="switchMobileNav('analytics')">
+    <span class="mb-ico">📈</span>
+    <span class="mb-label">YouTube</span>
+  </button>
+  <button class="mb-nav-item" data-page="pengaturan" onclick="switchMobileNav('pengaturan')">
+    <span class="mb-ico">⚙️</span>
+    <span class="mb-label">Menu</span>
+  </button>
+</nav>
 
 <!-- TOAST NOTIFICATION -->
 <div class="toast" id="toast"></div>
@@ -1563,19 +1650,42 @@ function selectAnalyticsVideo(id) {
   document.getElementById('playerSpotlight')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function toggleMobileSidebar(open) {
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('sidebarBackdrop');
+  if (!sb) return;
+  if (typeof open === 'boolean') {
+    sb.classList.toggle('open', open);
+    if (bd) bd.classList.toggle('open', open);
+  } else {
+    sb.classList.toggle('open');
+    if (bd) bd.classList.toggle('open');
+  }
+}
+
+function switchMobileNav(page) {
+  showPage(page);
+  toggleMobileSidebar(false);
+}
+
 // NAVIGATION & OTHER PAGES
 function showPage(page) {
   document.querySelectorAll('.nav a').forEach(a => a.classList.toggle('active', a.dataset.page === page));
+  document.querySelectorAll('.mb-nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  toggleMobileSidebar(false);
+
   if (page === 'dashboard') {
     document.getElementById('dashboardPage').style.display = 'grid';
     document.getElementById('otherPage').style.display = 'none';
     render();
+    window.scrollTo({top: 0, behavior: 'smooth'});
     return;
   }
 
   document.getElementById('dashboardPage').style.display = 'none';
   const op = document.getElementById('otherPage');
   op.style.display = 'block';
+  window.scrollTo({top: 0, behavior: 'smooth'});
 
   if (page === 'analytics') {
     renderAnalytics();
@@ -1602,6 +1712,7 @@ function showPage(page) {
             <option>Sudah Tayang</option>
           </select>
         </div>
+        <div class="mobile-scroll-hint">👉 <i>Geser tabel ke samping untuk melihat detail & aksi</i></div>
         <div class="table-wrap">
           <table class="table">
             <thead>
@@ -1629,6 +1740,7 @@ function showPage(page) {
             <button class="btn ghost" onclick="showPage('analytics')">📈 Buka Analytics & Player</button>
           </div>
         </div>
+        <div class="mobile-scroll-hint">👉 <i>Geser tabel ke samping untuk melihat detail & aksi</i></div>
         <div class="table-wrap">
           <table class="table">
             <thead>
@@ -1857,7 +1969,7 @@ function renderBigCal() {
 
 // EVENT LISTENERS
 document.getElementById('mobileMenu').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('open');
+  toggleMobileSidebar();
 });
 
 document.querySelectorAll('.nav a').forEach(a => {
