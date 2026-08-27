@@ -121,8 +121,10 @@ a{color:inherit;text-decoration:none}
 .table td{color:#d9dde3}
 .table tr:hover td{background:rgba(255,255,255,.02)}
 
-.person{display:flex;align-items:center;gap:9px}
-.pic{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#704a38,#1f2024);display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
+.person{display:flex;align-items:center;gap:12px}
+.pic{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#b81f2b,#400d11);display:grid;place-items:center;font-size:13px;font-weight:800;flex-shrink:0;border:1.5px solid rgba(227,29,43,0.45);color:#fff;box-shadow:0 3px 10px rgba(0,0,0,0.5)}
+.person-name{font-size:15.5px;font-weight:700;color:#ffffff;line-height:1.25;letter-spacing:0.3px;display:block}
+.person-link{font-size:11px;color:#5b8cff;margin-top:2px;display:inline-flex;align-items:center;gap:3px}
 .badge{display:inline-flex;padding:4px 8px;border-radius:6px;font-size:10px;font-weight:700}
 .b-ready{background:rgba(245,183,47,.14);color:var(--yellow);border:1px solid rgba(245,183,47,.25)}
 .b-edit{background:rgba(91,140,255,.14);color:#8cb0ff;border:1px solid rgba(91,140,255,.25)}
@@ -257,6 +259,16 @@ a{color:inherit;text-decoration:none}
 
 @media(min-width:861px){
   .mobile-menu{display:none}
+  .main{padding:26px 32px 40px}
+  .desktop-pro-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(227,29,43,0.12);border:1px solid rgba(227,29,43,0.3);border-radius:20px;font-size:11px;font-weight:700;color:#ff5b66;letter-spacing:0.5px}
+  .person-name{font-size:16.5px;letter-spacing:0.4px}
+  .table td{padding:13px 12px;font-size:13px}
+  .table th{padding:13px 12px;font-size:11px}
+  .table tr:hover td{background:rgba(227,29,43,0.04)}
+  .card{transition:transform .2s ease, border-color .2s ease}
+  .card:hover{border-color:#353e4c}
+  .metric:hover{transform:translateY(-2px);border-color:#481b22;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+  .toolbar select{cursor:pointer}
 }
 
 @media(max-width:560px){
@@ -388,6 +400,7 @@ a{color:inherit;text-decoration:none}
 
         <button class="iconbtn hide-mobile" title="Notifikasi" onclick="toast('🔔 Belum ada notifikasi baru')">🔔</button>
         <div class="avatar hide-mobile" title="Admin Jelajah Malam">JM</div>
+        <div class="desktop-pro-badge hide-mobile">💻 MODE DESKTOP PRO</div>
         <div class="date-badge hide-mobile" id="currentDateBadge">Hari ini</div>
 
         <div class="search">
@@ -455,6 +468,13 @@ a{color:inherit;text-decoration:none}
             <option>Siap Tayang</option>
             <option>Sudah Tayang</option>
           </select>
+          <select id="stockSort" title="Urutkan Data Narasumber">
+            <option value="date_desc">📅 Tanggal: Terbaru ke Terlama</option>
+            <option value="date_asc">📅 Tanggal: Terlama ke Terbaru</option>
+            <option value="name_asc">🔤 Nama: A → Z (Abjad)</option>
+            <option value="name_desc">🔤 Nama: Z → A</option>
+            <option value="target_asc">🎯 Target: Terdekat</option>
+          </select>
         </div>
 
         <div class="mobile-scroll-hint">👉 <i>Geser tabel ke samping untuk melihat detail & aksi</i></div>
@@ -462,8 +482,8 @@ a{color:inherit;text-decoration:none}
           <table class="table">
             <thead>
               <tr>
-                <th>Narasumber</th>
-                <th>Tgl Rekaman</th>
+                <th onclick="toggleSortField('name')" style="cursor:pointer" title="Klik untuk mengurutkan nama A-Z / Z-A">Narasumber ↕</th>
+                <th onclick="toggleSortField('date')" style="cursor:pointer" title="Klik untuk mengurutkan tanggal terbaru / terlama">Tgl Rekaman ↕</th>
                 <th>Judul / Topik</th>
                 <th>Status</th>
                 <th>Target Tayang</th>
@@ -1040,15 +1060,64 @@ function render() {
   renderCal();
 }
 
+function toggleSortField(field) {
+  const sortSelect = document.getElementById('stockSort');
+  if (!sortSelect) return;
+  if (field === 'name') {
+    sortSelect.value = sortSelect.value === 'name_asc' ? 'name_desc' : 'name_asc';
+  } else if (field === 'date') {
+    sortSelect.value = sortSelect.value === 'date_desc' ? 'date_asc' : 'date_desc';
+  }
+  renderStock();
+}
+
+function sortStockList(arr, mode) {
+  return arr.sort((a, b) => {
+    if (mode === 'date_desc') {
+      const dA = a.date || '';
+      const dB = b.date || '';
+      if (dA !== dB) return dB.localeCompare(dA);
+      return (a.name || '').localeCompare(b.name || '', 'id', {sensitivity: 'base'});
+    }
+    if (mode === 'date_asc') {
+      const dA = a.date || '9999-99-99';
+      const dB = b.date || '9999-99-99';
+      if (dA !== dB) return dA.localeCompare(dB);
+      return (a.name || '').localeCompare(b.name || '', 'id', {sensitivity: 'base'});
+    }
+    if (mode === 'name_asc') {
+      const nC = (a.name || '').localeCompare(b.name || '', 'id', {sensitivity: 'base'});
+      if (nC !== 0) return nC;
+      return (b.date || '').localeCompare(a.date || '');
+    }
+    if (mode === 'name_desc') {
+      const nC = (b.name || '').localeCompare(a.name || '', 'id', {sensitivity: 'base'});
+      if (nC !== 0) return nC;
+      return (b.date || '').localeCompare(a.date || '');
+    }
+    if (mode === 'target_asc') {
+      const tA = a.target || '9999-99-99';
+      const tB = b.target || '9999-99-99';
+      return tA.localeCompare(tB);
+    }
+    return 0;
+  });
+}
+
 // RENDER STOK TABLE
 function renderStock() {
   const q = (document.getElementById('stockSearch')?.value || '').toLowerCase();
   const sf = document.getElementById('stockFilter')?.value || 'Semua Status';
+  const sortMode = document.getElementById('stockSort')?.value || 'date_desc';
+
   let arr = data.stock.filter(x => (currentStatus === 'Semua' || x.status === currentStatus) && (sf === 'Semua Status' || x.status === sf));
   
   if (q) {
     arr = arr.filter(x => (x.name + ' ' + x.title + ' ' + (x.note || '')).toLowerCase().includes(q));
   }
+
+  // Pengurutan sesuai tanggal dan nama
+  sortStockList(arr, sortMode);
 
   const body = document.getElementById('stockBody');
   if (!body) return;
@@ -1064,15 +1133,15 @@ function renderStock() {
         <div class="person">
           <div class="pic">${initials(x.name)}</div>
           <div>
-            <b>${x.name}</b>
-            ${x.link ? `<div style="font-size:10px"><a href="${x.link}" target="_blank" style="color:#5b8cff">🔗 Link Bahan</a></div>` : ''}
+            <span class="person-name">${x.name}</span>
+            ${x.link ? `<a href="${x.link}" target="_blank" class="person-link">🔗 Link Bahan</a>` : ''}
           </div>
         </div>
       </td>
-      <td>${fmtDate(x.date)}</td>
-      <td style="max-width:240px;word-break:break-word">${x.title}</td>
+      <td style="font-weight:600;color:#d5dbe3;white-space:nowrap">${fmtDate(x.date)}</td>
+      <td style="max-width:240px;word-break:break-word;font-weight:500">${x.title}</td>
       <td>${badge(x.status)}</td>
-      <td>${fmtDate(x.target)}</td>
+      <td style="font-weight:600;color:#ffc23d;white-space:nowrap">${fmtDate(x.target)}</td>
       <td style="max-width:200px;color:#9aa2ad;font-size:11px">${x.note || '—'}</td>
       <td style="text-align:center">
         <div style="display:flex;gap:5px;justify-content:center">
@@ -1711,14 +1780,21 @@ function showPage(page) {
             <option>Siap Tayang</option>
             <option>Sudah Tayang</option>
           </select>
+          <select id="fullSort" title="Urutkan Data">
+            <option value="date_desc">📅 Tanggal: Terbaru ke Terlama</option>
+            <option value="date_asc">📅 Tanggal: Terlama ke Terbaru</option>
+            <option value="name_asc">🔤 Nama: A → Z (Abjad)</option>
+            <option value="name_desc">🔤 Nama: Z → A</option>
+            <option value="target_asc">🎯 Target: Terdekat</option>
+          </select>
         </div>
         <div class="mobile-scroll-hint">👉 <i>Geser tabel ke samping untuk melihat detail & aksi</i></div>
         <div class="table-wrap">
           <table class="table">
             <thead>
               <tr>
-                <th>Narasumber</th>
-                <th>Rekaman</th>
+                <th onclick="toggleFullSortField('name')" style="cursor:pointer" title="Urutkan berdasarkan Nama">Narasumber ↕</th>
+                <th onclick="toggleFullSortField('date')" style="cursor:pointer" title="Urutkan berdasarkan Tanggal">Rekaman ↕</th>
                 <th>Judul / Topik</th>
                 <th>Status</th>
                 <th>Target Tayang</th>
@@ -1875,11 +1951,27 @@ function showPage(page) {
   }
 }
 
+function toggleFullSortField(field) {
+  const sortSelect = document.getElementById('fullSort');
+  if (!sortSelect) return;
+  if (field === 'name') {
+    sortSelect.value = sortSelect.value === 'name_asc' ? 'name_desc' : 'name_asc';
+  } else if (field === 'date') {
+    sortSelect.value = sortSelect.value === 'date_desc' ? 'date_asc' : 'date_desc';
+  }
+  renderFullStock();
+}
+
 function renderFullStock() {
   const q = (document.getElementById('fullSearch')?.value || '').toLowerCase();
   const f = document.getElementById('fullFilter')?.value || 'Semua Status';
+  const sortMode = document.getElementById('fullSort')?.value || 'date_desc';
+
   let arr = data.stock.filter(x => (f === 'Semua Status' || x.status === f) && (!q || (x.name + ' ' + x.title + ' ' + (x.note || '')).toLowerCase().includes(q)));
   
+  // Pengurutan sesuai tanggal dan nama
+  sortStockList(arr, sortMode);
+
   const targetEl = document.getElementById('fullStock');
   if (!targetEl) return;
 
@@ -1890,11 +1982,19 @@ function renderFullStock() {
 
   targetEl.innerHTML = arr.map(x => `
     <tr>
-      <td><b>${x.name}</b></td>
-      <td>${fmtDate(x.date)}</td>
-      <td>${x.title}</td>
+      <td>
+        <div class="person">
+          <div class="pic">${initials(x.name)}</div>
+          <div>
+            <span class="person-name">${x.name}</span>
+            ${x.link ? `<a href="${x.link}" target="_blank" class="person-link">🔗 Link Bahan</a>` : ''}
+          </div>
+        </div>
+      </td>
+      <td style="font-weight:600;color:#d5dbe3;white-space:nowrap">${fmtDate(x.date)}</td>
+      <td style="max-width:240px;word-break:break-word;font-weight:500">${x.title}</td>
       <td>${badge(x.status)}</td>
-      <td>${fmtDate(x.target)}</td>
+      <td style="font-weight:600;color:#ffc23d;white-space:nowrap">${fmtDate(x.target)}</td>
       <td style="color:#9aa2ad">${x.note || '—'}</td>
       <td style="text-align:center">
         <div style="display:flex;gap:5px;justify-content:center">
@@ -1907,6 +2007,7 @@ function renderFullStock() {
 
   document.getElementById('fullSearch')?.addEventListener('input', renderFullStock);
   document.getElementById('fullFilter')?.addEventListener('change', renderFullStock);
+  document.getElementById('fullSort')?.addEventListener('change', renderFullStock);
 }
 
 function renderFullPublished() {
@@ -1983,6 +2084,7 @@ document.querySelectorAll('.nav a').forEach(a => {
 
 document.getElementById('stockSearch').addEventListener('input', renderStock);
 document.getElementById('stockFilter').addEventListener('change', renderStock);
+document.getElementById('stockSort')?.addEventListener('change', renderStock);
 
 document.querySelectorAll('#statusTabs .tab').forEach(t => {
   t.addEventListener('click', () => {
