@@ -413,9 +413,9 @@ a{color:inherit;text-decoration:none}
     <!-- METRICS -->
     <div class="metrics">
       <div class="metric card">
-        <div class="top"><span>Total Narasumber</span><div class="ico" style="background:#321117;color:#ff4050">👥</div></div>
+        <div class="top"><span>Jumlah Cerita</span><div class="ico" style="background:#321117;color:#ff4050">🎙️</div></div>
         <strong id="mNarasumber">0</strong>
-        <div class="trend red">Total tercatat di sistem</div>
+        <div class="trend red">Total cerita & stok rekaman</div>
       </div>
       <div class="metric card">
         <div class="top"><span>Stok Siap Tayang</span><div class="ico" style="background:#33260e;color:#ffc23d">🎥</div></div>
@@ -805,9 +805,15 @@ function setGSheetUrl(url) {
 }
 
 let isSyncing = false;
+let hasPendingSync = false;
 async function pushToGSheet() {
   const url = getGSheetUrl();
-  if (!url || isSyncing) return;
+  if (!url) return;
+  
+  if (isSyncing) {
+    hasPendingSync = true;
+    return;
+  }
   
   isSyncing = true;
   updateSyncBadge('syncing');
@@ -835,6 +841,10 @@ async function pushToGSheet() {
     updateSyncBadge('error');
   } finally {
     isSyncing = false;
+    if (hasPendingSync) {
+      hasPendingSync = false;
+      pushToGSheet();
+    }
   }
 }
 
@@ -1044,8 +1054,8 @@ function render() {
     if (x.status === 'Sudah Tayang') counts.done++;
   });
 
-  const uniqueNarasumber = new Set(data.stock.map(x => x.name.trim()).filter(Boolean)).size;
-  document.getElementById('mNarasumber').textContent = uniqueNarasumber;
+  // Jumlah Cerita: total seluruh cerita / item stok yang ada di database
+  document.getElementById('mNarasumber').textContent = data.stock.length;
   document.getElementById('mReady').textContent = counts.ready;
   document.getElementById('mEditing').textContent = counts.editing;
   document.getElementById('mDone').textContent = data.published.length;
